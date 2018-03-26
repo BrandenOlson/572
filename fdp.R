@@ -47,7 +47,7 @@ y <- generateY(betas, X)
 
 lambdas <- 1
 
-nlambda <- 50000
+nlambda <- 20000
 max_lambda <- 5*sum(betas)
 lambdas <- max_lambda*exp(-seq(0.001, 10, length.out=nlambda))
 lasso_mod <- glmnet::glmnet(X, y, alpha=1, lambda=lambdas)
