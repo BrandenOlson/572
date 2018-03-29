@@ -1,0 +1,95 @@
+\documentclass[12pt]{article}
+\usepackage{chicago,geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{url}
+\geometry{margin=1in}
+
+\title{``Combining Mixture Components for Clustering'' published in the Journal of Computational and Graphical Statistics.\\ Instructions for the provided Matlab functions.}
+\author{Jean-Patrick Baudry \\ Universit\'{e} Paris-Sud XI \and
+Adrian E. Raftery \\ University of Washington \and 
+Gilles Celeux \\ INRIA \and
+Kenneth Lo \\ University of Washington \and
+Rapha\"{e}l Gottardo \\ University of British Columbia}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Description of the files}
+
+The following files are provided. They have been developped and tested with Matlab R2007b, with the Statistics toolbox. An example on how they should be used is given bellow.
+
+Let us denote, as in the paper
+\begin{itemize}
+\item $d$ for the data dimension ;
+\item $n$ for the sample size ;
+\end{itemize}
+
+\paragraph{MixCombi.m}is the main file. The user provides the BIC (and optionally the ICL solution) solution and the program computes and returns the whole hierarchy obtained by combining from the BIC solution, as described in the paper. The user may get the BIC solution for example from the Mixmod (\url{http://www.mixmod.org/}, see {\it Run\_Mixmod2} bellow) or the Mclust (\url{http://www.stat.washington.edu/mclust/}) softwares. The following variables must be created by the user:
+\begin{itemize}
+\item {\it exp.data.obs} ($n\times d$ matrix which contains the sample) ;
+\item {\it exp.data.BIC.K} (number of components selected by BIC, denoted by $K_{BIC}$ from now on) ;
+\item {\it exp.data.BIC.mu} ($K_{BIC}\times d$ matrix with the $K_{BIC}$ Gaussian components mean parameters of the BIC solution) ;
+\item {\it exp.data.BIC.S} ($d\times d\times K_{BIC}$ matrix with the $K_{BIC}$ Gaussian components Covariance matrices of the BIC solution) ;
+\item {\it exp.data.BIC.p} ($1\times K_{BIC}$ vector with the $K_{BIC}$ Gaussian components mixing proportions of the BIC solution).
+\end{itemize}
+The user may also provide the ICL solution (optional):
+\begin{itemize}
+\item {\it exp.data.ICL.K} (number of components selected by ICL, denoted by $K_{ICL}$ from now on) ;
+\item {\it exp.data.ICL.mu} ($K_{ICL}\times d$ matrix with the $K_{ICL}$ Gaussian components mean parameters of the ICL solution) ;
+\item {\it exp.data.ICL.S} ($d\times d\times K_{ICL}$ matrix with the $K_{ICL}$ Gaussian components Covariance matrices of the ICL solution) ;
+\item {\it exp.data.ICL.p} ($1\times K_{ICL}$ vector with the $K_{ICL}$ Gaussian components mixing proportions of the ICL solution).
+\end{itemize}
+The program returns a $K_{BIC}$ structure exp.res.combi with the labels, posterior probabilities (denoted by {\it tau}), entropies for each combined solution, as well as a matrix denoted by M for each of those solutions, which describes the $K+1\rightarrow K$ combining step: for example, $exp.res.combined(3).M=\begin{pmatrix}
+1 & 0 & 1 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 1 
+\end{pmatrix}$
+means that the three-component combined solution is obtained from the four-component solution by merging the first and the third of its components.
+
+\paragraph{PlotResults}plots the results obtained from {\it MixCombi.m} in case $d=2$. Analogous functions are provided for the cases $d=3$ (3D plots) and $d=4$ (plot of the two first coordinates, which may be easily changed in the code). The labels and titles of the plots should be explicit enough.
+
+\paragraph{PlotEntropy}plots all the entropy plots (simple, rescaled, etc.) considered in the paper, from the results obtained from {\it MixCombi.m}. The labels of the plots should be explicit enough.
+
+\paragraph{Run\_Mixmod2} Runs Mixmod (version 2.1.1) and returns the results (BIC solution) in a structure which can be directly used in {\it MixCombi.m}. Mixmod has to be installed and the Mixmod paths lines 16,17 in the file have to be updated according to your installation. The following variables must be created by the user:
+\begin{itemize}
+\item {\it exp.data.obs} ($n\times d$ matrix which contains the sample) ;
+\item {\it exp.cond.Kmin} (minimum number of Gaussian components) ;
+\item {\it exp.cond.Kmax} (maximum number of Gaussian components) ;
+\item {\it exp.cond.models} (model to be considered, according to the Mixmod syntax).
+\end{itemize}
+
+\paragraph{Data} The files {\it 4.1.mat}, {\it 4.2.mat}, {\it 4.3.mat}, {\it 4.4.1.mat}, {\it 4.4.2.mat}, {\it GvHD-.mat}, {\it GvHD+.mat} contain the data and BIC solutions corresponding to the examples reported in the paper.
+
+\paragraph{func} repertory: contains functions called by the preceding files. Some are more or less documented: for example, \\
+{\it $>>$ help MAP\_combi}\\
+will return a brief description of the MAP\_combi function. But it should not be necessary to directly use those functions at first.
+
+\section{Example}
+
+Here is an example on how the first example reported in the paper (section 4.4.1) may be reproduced by readers. 
+
+\begin{itemize}
+\item[$>>$] clear \% Clear all
+\item[$>>$] load 4.1.mat \% Load the data, BIC and ICL solutions
+\item[$>>$] exp \% display the loaded structure
+\item[$>>$] MixCombi \% computes and display the combined solutions
+
+\begin{tabular}{llll}
+    'Criterion'       &'K'    &'ENT'    &'Lcc'  \\
+    'ICL'             &'4'    &'3'      &'-2044'\\
+    'Combined K=2'    &'2'    &'0'      &'-1951'\\
+    'Combined K=3'    &'3'    &'1'      &'-1952'\\
+    'Combined K=4'    &'4'    &'5'      &'-1956'\\
+    'Combined K=5'    &'5'    &'41'     &'-1992'\\
+    'BIC'             &'6'    &'122'    &'-2074'\\
+\end{tabular}
+\item[$>>$] PlotResults \% Plot the data, BIC and ICL solutions and the combined solutions.
+\item[$>>$] PlotEntropy \% Plot the entropy plots...
+\end{itemize}
+
+All illustrations in the paper may be reproduced the same way. Think of using {\it PlotResults\_3D} (resp. {\it PlotResults\_4D}) for the ``3D uniform cross'' example (resp. the GvHD datasets).
+
+\end{document}
