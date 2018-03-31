@@ -37,6 +37,31 @@ getModelLikelihood <- function(mixmod_object) {
     return(lik)
 }
 
+getBICFromModel <- function(mixmod_object) {
+    bic <- mixmod_object %>%
+        slot("bestResult") %>%
+        slot("criterionValue")
+    return(bic)
+}
+
+BIC <- function(log_lik, nu, n) {
+    bic <- log_lik - nu*log(n)/2
+    return(bic)
+}
+
+getKBIC <- function(Ks, models) {
+    K_count <- length(Ks)
+    bics <- {}
+    for(i in 1:K_count) {
+        K <- Ks[i]
+        mod <- models[[i]]
+        bics[i] <- getBICFromModel(mod)
+    }  
+    K_BIC <- Ks[which.min(bics)]
+    print(bics)
+    return(K_BIC)
+}
+
 d1 <- readData("Data/4.1.csv")
 d2 <- readData("Data/4.2.csv")
 d3 <- readData("Data/4.3.csv")
@@ -54,11 +79,14 @@ names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
 d52 <- d52_raw[d52_raw$CD3 > 280, ]
 
 K_min <- 1
-K_max <- 6
-for(K in K_max:K_min) {
+K_max <- 20
+Ks <- K_min:K_max
+mixmods <- list(NA, length(Ks))
+for(K in Ks) {
     model_string <- paste0("m", K)
+    set.seed(13)
     assign(model_string, mixmodCluster(d1, K))
-    print(getModelParameters(eval(parse(text=model_string))))
+    mixmods[[K]] <- eval(parse(text=model_string))
 }
 
-
+K_BIC <- getKBIC(Ks, mixmods)

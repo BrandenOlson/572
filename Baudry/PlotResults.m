@@ -2,20 +2,30 @@ addpath('func');
 
 %% Plot the observed data
 
-figure;
+hold on;
+figure('visible', 'off');
 
 plot(exp.data.obs(:,1),exp.data.obs(:,2),'*b');
 
 title(['Observed Data. n=' int2str(exp.cond.n)]);
 
+figure_name = strcat(filename, "_observed.pdf");
+print("-dpdf", figure_name);
+movefile(figure_name, strcat("../BaudryFigures/", filename));
+
 %% Plot the BIC solution
 
-figure;
+hold on;
+figure('visible', 'off');
 
 map_contour(exp.data.obs,exp.res.BIC.mu,exp.res.BIC.S,exp.res.BIC.p,exp.res.BIC.K);
 
 title(['BIC Solution. K=' int2str(exp.res.BIC.K) '. ENT=' int2str(exp.res.BIC.ent)]);
 box on;
+
+figure_name = strcat(filename, "_BIC.pdf");
+print("-dpdf", figure_name);
+movefile(figure_name, strcat("../BaudryFigures/", filename));
 
 %% Plot the combined solutions
 
@@ -44,7 +54,7 @@ for Kb=2:exp.res.BIC.K-1
        coln(k)=col(min(find(exp.res.combi(K).M(k,:)==1)));
     end
     col=coln;
-    figure;
+    figure('visible', 'off');
   
     hold on;
 
@@ -85,6 +95,9 @@ for Kb=2:exp.res.BIC.K-1
     title(['Combined Solution. K=' int2str(K) '. ENT=' int2str(exp.res.combi(K).ent)]);
     box on;
 
+    figure_name = strcat(filename, "_K_", int2str(K), ".pdf");
+    print("-dpdf", figure_name);
+    movefile(figure_name, strcat("../BaudryFigures/", filename));
     hold off;
 
 end
@@ -93,12 +106,17 @@ end
 
 try % In case the user did not provide the ICL solution
     
-    figure;
+    hold on;
+    figure('visible', 'off');
 
     map_contour(exp.data.obs,exp.res.ICL.mu,exp.res.ICL.S,exp.res.ICL.p,exp.res.ICL.K);
 
     title(['ICL solution. K=' int2str(exp.res.ICL.K) '. ENT=' int2str(ENT(exp.data.obs,exp.res.ICL.mu,exp.res.ICL.S,exp.res.ICL.p,exp.res.ICL.K,exp.cond.n))]);
     box on;
+
+    figure_name = strcat(filename, "_ICL.pdf");
+    print("-dpdf", figure_name);
+    movefile(figure_name, strcat("../BaudryFigures/", filename));
 
 catch
 end

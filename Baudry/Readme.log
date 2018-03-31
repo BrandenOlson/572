@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  29 MAR 2018 13:49
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  29 MAR 2018 18:53
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -148,8 +148,7 @@ LaTeX Info: Redefining \] on input line 2666.
 (/usr/local/texlive/2015/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip11
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
-)
-No file Readme.aux.
+) (./Readme.aux)
 \openout1 = `Readme.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
@@ -164,6 +163,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
 LaTeX Font Info:    ... okay on input line 16.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
 LaTeX Font Info:    ... okay on input line 16.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -267,8 +267,8 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
 {/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
  (./Readme.aux) ) 
 Here is how much of TeX's memory you used:
- 2685 strings out of 493089
- 36958 string characters out of 6134842
+ 2687 strings out of 493089
+ 36980 string characters out of 6134842
  109469 words of memory out of 5000000
  6143 multiletter control sequences out of 15000+600000
  10142 words of font info for 37 fonts, out of 8000000 for 9000
