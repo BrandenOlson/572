@@ -33,22 +33,25 @@ MixCombi;
 PlotResults;
 PlotEntropy;
 
-% clear
-% filename = "4.4.2.mat";
-% load(strcat("Data/", filename));
-% MixCombi;
-% PlotResults;
-% 
-% clear
-% filename = "GvHD+.mat";
-% load(strcat("Data/", filename));
-% MixCombi;
-% PlotResults;
-% 
-% clear
-% filename = "GvHD-.mat";
-% load(strcat("Data/", filename));
-% MixCombi;
-% PlotResults;
+clear
+filename = "4.4.2.mat";
+load(strcat("Data/", filename));
+MixCombi;
+PlotResults_3D;
+PlotEntropy;
+
+clear
+filename = "GvHD+.mat";
+load(strcat("Data/", filename));
+MixCombi;
+PlotResults_4D;
+PlotEntropy;
+
+clear
+filename = "GvHD-.mat";
+load(strcat("Data/", filename));
+MixCombi;
+PlotResults_4D;
+PlotEntropy;
 
 cd ..

@@ -2,20 +2,30 @@ addpath('func');
 
 %% Plot the observed data
 
+hold on;
 figure;
 
 plot(exp.data.obs(:,1),exp.data.obs(:,2),'*b');
 
 title(['Observed Data. n=' int2str(exp.cond.n)]);
 
+figure_name = strcat(filename, "_observed.pdf")
+print("-dpdf", figure_name);
+movefile(figure_name, strcat("../BaudryFigures/", filename));
+
 %% Plot the BIC solution
 
+hold on;
 figure;
 
 map_contour(exp.data.obs,exp.res.BIC.mu,exp.res.BIC.S,exp.res.BIC.p,exp.res.BIC.K);
 
 title(['BIC Solution. K=' int2str(exp.res.BIC.K) '. ENT=' int2str(exp.res.BIC.ent)]);
 box on;
+
+figure_name = strcat(filename, "_BIC.pdf")
+print("-dpdf", figure_name);
+movefile(figure_name, strcat("../BaudryFigures/", filename));
 
 %% Plot the combined solutions
 
@@ -84,6 +94,10 @@ for Kb=2:exp.res.BIC.K-1
 
     title(['Combined Solution. K=' int2str(K) '. ENT=' int2str(exp.res.combi(K).ent)]);
     box on;
+
+    figure_name = strcat(filename, "_K_", int2str(K), ".pdf")
+    print("-dpdf", figure_name);
+    movefile(figure_name, strcat("../BaudryFigures/", filename));
 
     hold off;
 

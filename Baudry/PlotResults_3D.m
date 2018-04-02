@@ -2,6 +2,7 @@ addpath('func');
 
 %% 3D  Plot the observed data
 
+hold on;
 figure;
 
 plot3(exp.data.obs(:,1),exp.data.obs(:,2),exp.data.obs(:,3),'*b');
@@ -9,8 +10,13 @@ grid on;
 
 title(['Observed Data. n=' int2str(exp.cond.n)]);
 
+figure_name = strcat(filename, "_observed.pdf");
+print("-dpdf", figure_name);
+movefile(figure_name, strcat("../BaudryFigures/", filename));
+
 %% 3D Plot the BIC solution
 
+hold on;
 figure;
 
 map_contour(exp.data.obs,exp.res.BIC.mu,exp.res.BIC.S,exp.res.BIC.p,exp.res.BIC.K);
@@ -18,10 +24,14 @@ map_contour(exp.data.obs,exp.res.BIC.mu,exp.res.BIC.S,exp.res.BIC.p,exp.res.BIC.
 title(['BIC solution. K=' int2str(exp.res.BIC.K) '. ENT=' int2str(exp.res.BIC.ent)]);
 grid on;
 view(3);
+figure_name = strcat(filename, "_BIC.pdf");
+print("-dpdf", figure_name);
+movefile(figure_name, strcat("../BaudryFigures/", filename));
 
 %% 3D Plot the ICL solution (optional)
 
 try % In case the user did not provide the ICL solution
+    hold on;
     figure;
 
     map_contour(exp.data.obs,exp.res.ICL.mu,exp.res.ICL.S,exp.res.ICL.p,exp.res.ICL.K);
@@ -29,6 +39,9 @@ try % In case the user did not provide the ICL solution
     title(['ICL solution. K=' int2str(exp.res.ICL.K) '. ENT=' int2str(ENT(exp.data.obs,exp.res.ICL.mu,exp.res.ICL.S,exp.res.ICL.p,exp.res.ICL.K,exp.cond.n))]);
     grid on;
     view(3);
+    figure_name = strcat(filename, "_ICL.pdf");
+    print("-dpdf", figure_name);
+    movefile(figure_name, strcat("../BaudryFigures/", filename));
 catch
 end
 
@@ -78,6 +91,11 @@ for Kb=2:exp.res.BIC.K-1
     title(['Combined solution. K=' int2str(K) '. ENT=' int2str(exp.res.combi(K).ent)]);
     grid on;
     view(3);
+
+    figure_name = strcat(filename, "_K_", int2str(K), ".pdf");
+    print("-dpdf", figure_name);
+    movefile(figure_name, strcat("../BaudryFigures/", filename));
+
 
 %    file=['C:\Maths\Article avec Celeux et Raftery\Graphics\Gottardo_2D\Gottardo_2D_C_combi(' int2str(K) ').eps']
     
