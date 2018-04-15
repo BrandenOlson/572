@@ -13,8 +13,8 @@
 
 % Mixmod 2.1.1 paths
 
-addpath('c:\Program Files\Mixmod-2.1.1\')
-addpath('c:\Program Files\Mixmod-2.1.1\UTIL\MATLAB')
+% addpath('c:\Program Files\Mixmod-2.1.1\')
+% addpath('c:\Program Files\Mixmod-2.1.1\UTIL\MATLAB')
 
 addpath('func');
 
