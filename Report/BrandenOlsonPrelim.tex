@@ -216,14 +216,232 @@
 \date{}
 \maketitle
 
-\section{}
-BIC is defined as
+\section{Background and motivation} 
+Many situations arise in which collected data points must be clustered into similar subgroups. 
+For example, we might wish to cluster DNA sequences from a number of species into phylogenetic families, or categorize X-ray data readings by the galaxies from which the waves originated.
+In general, we consider clusters to be contiguous, densely-populated regions of a feature space, separated by contiguous, relatively empty regions.
+The field of clustering contains a broad and vast set of methods based on various assumptions of the underlying data-generating mechanism.
+
+One such category, known as model-based clustering, assumes that the data points 
+$\bX_1, \dotsc, \bX_n$ were generated from a mixture model and can be assigned cluster labels based on features of the distribution.
+For continuous data, model-based clustering typically assumes that each point $\bX_i$ is generated from a multivariate Gaussian mixture model. 
+That is, given $K$ mixture components, we decompose the density of $\bx_i$ as
+\ba
+f(\bx_i | K, \btheta_K)
+	& = \sum_{i=k}^K p_k \phi \left(\bx_i ; \mu_k, \Sigma_k \right).
+\ea
+Here, $p_k, k = 1, \dotsc, K$ are the mixture proportions, or the marginal probabilities for each component to generate a new data point a priori, so that $p_k \ge 0 \; \forall k$ and $\sum_{k=1}^K p_k = 1$; $\phi(\cdot; \mu_k, \Sigma_k)$ is the $d$-variate Gaussian density with mean $\mu_k$ and covariance matrix $\Sigma_k$; and $\btheta_K = (\bp, \bmu, \bSigma) = (p_1, \dotsc, p_{K - 1}, \mu_1, \dotsc, \mu_k, \Sigma_1, \dotsc, \Sigma_K)$.
+
+It's useful to frame the problem as observing incomplete or censored data from a ``complete'' experiment where the components that generate each data point are known. Notationally, each "complete" data point is a pair $(\bx_i, \bz_i)$, where 
+$\bz_i \in \reals^K$ such that $z_{ik} = \ind{\bx_i \text{ was generated from component $k$}}$.  
+If $K$ is fixed, parameters can be estimated using EM algorithm by incorporating the density of each complete data pair,
+\ba
+f(\bx_i, \bz_i | K, \btheta_K)
+	& = \prod_{k=1}^K \left[ p_k \phi(\bx_i | \mu_k, \Sigma_k) \right]^{z_{ik}}
+\ea
+whose derivation is given in Appendix A.
+The EM algorithm is appropriate here since the true component assignments $\bz_i$ can be considered as ``missing'' data on which we can compute conditional expectations given the observed data.
+
+
+The goal in many clustering problems is to choose the number of components $K$ either based on previous knowledge, or perhaps without any other information.
+Dasgupta and Raftery (1998) were the first to propose using the BIC to select the number of components, which in this context is synonymous with the number of clusters. 
+That is, given a set of candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$, compute the MLE estimates for each $K$, and then choose the $K$ which minimizes the BIC (Bayesian information criterion), defined as
+\ba
+\text{BIC}(K) 
+	& = \log p(\bx | K, \estim\btheta_{K, \text{MLE}})
+		- \frac{ \nu_K \log(n) }{2}.
+\ea
+Here,
+$f(\bx | K, \btheta_K) = \prod_{i = 1}^n f(\bx_i | K, \btheta_K)$ is the density of the full dataset $\bx_1, \dotsc, \bx_n$, and
+ $\nu_K$ is the number of parameters of the $K$-component model.
+The BIC criterion can be viewed as an approximation to the integrated likelihood
+\ba
+\text{IL}(\bx | K)
+	& = \int_{\Theta_K} f(\bx | K, \btheta_K) \der \pi(\btheta_K)
+\ea
+where $\pi(\cdot)$ is a prior distribution over the parameter space $\bTheta_K$.
+Under certain regularity conditions, the BIC can be shown to generally estimate the number of components well.
+However, a drawback of this approach is that it implicitly assumes that each mixture component corresponds to its own cluster which is not always desriable.
+In other words, some clusters would be better estimated as mixtures of Gaussians themselves, which is unattainable with this approach. 
+
+Biernacki et al (2001) modify this approach by introducing the ICL criterion, namely,
+\ba
+\estim{\text{ICL}}
+	& \approx 
+	\log f(\bx, \estim\bz | K, \estim\theta_{K, \text{MLE}}) + \frac{ \nu_K \log(n) }{2}
+\ea
+an approximation of the integrated complete likelihood of the data. 
+Here, $f(\bx, \bz | K, \btheta) = \prod_{i=1}^n f(\bx_i, \bz_i | K, \btheta)$ is the complete density of the full dataset.
+Since we don't know the values of $\bz_i$, we must plug in estimates $\estim\bz_i$ using, for example, maximum a posteriori (MAP) estimates.
+Analogously to the BIC, this criterion approximates the integrated complete likelihood
+\ba
+\text{ICL}
+	& = \int_{\Theta_K} f(\bx, \bz | K, \btheta_K) \; \der \pi(\btheta_K).
+\ea
+It turns out that the ICL can also be seen as a penalization of the BIC criterion based on the mean Shannon entropy of the fitted model with $K$ components, 
+\ba
+\text{Ent}(K)
+	& = - \sum_{i=1}^n \sum_{k = 1}^K t_{ik}(\estim\btheta_K) \log t_{ik}(\estim\btheta_K)
+\ea
+The mathematical details can be found in Appendix A.
+
+\section*{Appendix A: Theoretical foundations for ICL}
+The likelihood for one observation is
+\ba
+f(\bx_i | K, \theta_K)
+	& = \sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k)
+\ea
+Thus, assuming independence, the observed likelihood is
+\ba
+f(\bx | K, \theta_K)
+	& = \prod_{i=1}^n \sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k)
+\ea
+That is, the observed log-likelihood is
+\ba
+L(\theta_K | \bx, K)
+	& = \log\left( \prod_{i=1}^n \sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right) \\
+	& = \sum_{i=1}^n \log \left( \sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+\ea
+Now, noting that for a unit vector $\bz_i \in \reals^K$ with $k$th element 1, 
+\ba
+\Pr{\bz_i} = \Pr{z_{ik} = 1} = p_k
+\ea
+the complete likelihood for one observation is
+\ba
+f(\bx_i, \bz_i)
+	& = f(\bx_i | \bz_i) \Pr{\bz_i} \\
+	& = \sum_{k=1}^K \phi(\bx_i | \mu_k, \Sigma_k) \ind{\bz_{ik} = 1}
+		p_k \\
+	& = \prod_{k = 1}^K \left[ p_k \phi(\bx_i | \mu_k, \Sigma_k) \right]^{z_{ik}}
+\ea
+so that the complete likelihood is
+\ba
+f(\bx, \bz| K, \theta_K)
+	& = \prod_{i=1}^n \prod_{k = 1}^K 
+		\left[ p_k \phi(\bx_i | \mu_k, \Sigma_k) \right]^{z_{ik}} \\
+\ea
+yielding the complete log-likelihood
+\ba
+\text{CL}(\theta_K | \bx, \bz, K)
+	& = \sum_{i=1}^n \sum_{k=1}^K z_{ik} \log \left( p_k \phi(\bx_i | \mu_k, \Sigma_k) \right).
+\ea
+Let $t_{ik}$ be the conditional probability that $\bx_i$ comes from component $k$.
+Then from Bayes's theorem,
+\ba
+t_{ik}
+	& = t_{ik}(K, \btheta_K) \\
+	& = \Pr{\text{component } k \mid \bx_i, K, \btheta_K} \\
+	& = \frac{\Pr{ \text{component }k, \bx_i \mid K, \btheta_K}}
+		{f(\bx_i|K,\btheta_K)} \\
+	& = \frac{\Pr{ \bx_i | \text{component } k, K, \btheta_K }
+		\Pr{\text{component } k | K, \btheta_K}}
+		{ \sum_{j=1}^K p_j \phi(\bx_i | \mu_j, \Sigma_j) } \\
+ 	& = \frac{ \phi(\bx_i | \mu_k, \Sigma_k) \cdot p_k }
+ 	{ \sum_{j=1}^K p_j \phi(\bx_i | \mu_j, \Sigma_j) }
+\ea 
+If we define
+\ba
+\text{EC}(K | \bz) := - \sum_{k=1}^K \sum_{i=1}^n z_{ik} \log t_{ik} 
+\ea
+We see that
+\ba
+L(\theta_K) - \text{EC}(K)
+	& = \sum_{i=1}^n \log\left( \sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+		- \left( - \sum_{k=1}^K \sum_{i=1}^n z_{ik} \log(t_{ik}) \right) \\
+	& = \sum_{i=1}^n \left\{
+		\log\left(\sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+		+ \sum_{k=1}^K z_{ik} \log\left( \frac{p_k \phi(\bx_i | \mu_k, \Sigma_k)}{ \sum_{j=1}^K p_j \phi(\bx_i | \mu_j, \Sigma_j) } \right)
+		\right\} \\
+	& = \sum_{i=1}^n \left\{
+		\log\left(\sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+		+ \sum_{k=1}^K z_{ik} \left[ \log\left( p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+		- \log \left( \sum_{j=1}^K p_j \phi(\bx_i | \mu_j, \Sigma_j) \right) \right]
+		\right\} \\
+	& = \sum_{i=1}^n \sum_{k=1}^K z_{ik} \log(p_k \phi(\bx_i | \mu_k, \Sigma_k))
+		+ \sum_{i=1}^n \log\left(\sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+			\underbrace{\left[ 1 - \sum_{i=1}^K z_{ik} \right]}_{=0} \\
+	& = \sum_{i=1}^n \sum_{k=1}^K z_{ik} \log(p_k \phi(\bx_i | \mu_k, \Sigma_k)) \\
+	& \equiv \text{CL}(K)
+\ea
+Seeing EC$(K | \bZ)$ as a random variable, we have for a fixed $K$,
+\ba
+\E{ \text{EC}(K | \bZ) } & = - \sum_{k=1}^K \sum_{i=1}^n \E{Z_{ik}} \log t_{ik} \\
+	& = - \sum_{k=1}^K \sum_{i=1}^n \Pr{Z_{ik} = 1} \log t_{ik} \\
+	& = - \sum_{k=1}^K \sum_{i=1}^n \Pr{X_i \text{ comes from $k$th component} } \log t_{ik} \\
+	& \equiv -  \sum_{k=1}^K \sum_{i=1}^n t_{ik} \log t_{ik} \\
+	& = \text{Ent}(K),
+\ea
+the entropy of the matrix $\bT = \set{t_{ik}}$.
+
+Now, the integrated likelihood (aka evidence or model evidence) is
+\ba
+\text{IL}(\bx | K, \theta_K)
+	& = \int_{\Theta_{K}} f(\bx | K, \theta_K) \pi(\theta_K | K) \; \der \theta_K \\
+	& = \int_{\Theta_{K}} \prod_{i=1}^n \sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \pi(\theta_K | K) \; \der \theta_K
+\ea
+An approximation is given via
+\ba
+	\log \text{IL}(\bx | K, \theta_K) 
+		& \approx \log f(\bx | K, \estim\theta_{K, \text{MLE}}) - \frac{\nu_K \log(n)}{2} \\
+		& \equiv \text{BIC}(K)
+\ea
+where $\estim\theta_{MLE} = \argmax_\theta f(\bx | K, \theta)$. 
+Analogously, we define the integrated complete likelihood as
+\ba
+\text{ICL}(\bx, \bz | K)
+	& = \int_{\Theta_K} f(\bx, \bz | K, \theta_K) \pi(\theta_K | K) \; \der \theta_K \\
+	& = \int_{\Theta_K} \prod_{i=1}^n \prod_{k = 1}^K 
+		\left[ p_k \phi(\bx_i | \mu_k, \Sigma_k) \right]^{z_{ik}} \pi(\theta_K | K) \; \der \theta_K \\
+\ea
+which takes into account evidence for an effective clustering structure. 
+We can introduce a similar approximation to BIC for missing data:
+\ba
+\log\text{ICL} \approx \log f(\bx, \estim\bz | K, \estim\theta_{K, \text{MLE}}) + \frac{ \nu_K \log(n) }{2}
+\ea
+where
+\ba
+\estim z_{ik} = \ind{ \argmax_{1 \le \ell \le K} t_{i \ell}(\estim\theta_{MLE}) = k }. 
+\ea
+
+\section*{Appendix B: Foundations of Baudry et al. methodology}
+Suppose we merge clusters $k$ and $k'$ to form $k \cup k'$. Then
+\ba
+t_{i, k \cup k'}^K
+	& = \Pr{\bx_i \text{ comes from $(k \cup k')$th component}} \\
+	& = \Pr{\bx_i \text{ comes from $k$th or $k'$th component} } \\
+	& = \Pr{\bx_i \text{ comes from $k$th component }} + \Pr{\bx_i \text{ comes from $k'$th component} } \\
+	& = t_{ik}^K + t_{ik'}^K
+\ea
+Then the resultant entropy (after possibly relabeling the indices) is
+\ba
+\text{Ent}(K - 1) & = - \sum_{k=1}^{K - 1} \sum_{i=1}^n t_{ik} \log t_{ik} \\
+	& = - \sum_{i=1}^n \left( \sum_{j \ne k \cup k'} t_{ij} \log(t_{ij}) + t_{i,k \cup k'} \log( t_{i,k\cup k'} ) \right) \\
+	& = - \sum_{i=1}^n \left( \sum_{j \ne k \cup k'} t_{ij} \log(t_{ij}) + (t_{i,k}^K + t_{i,k'}^K) \log( t_{ik}^K + t_{ik'}^K) \right) \\
+\ea
+Thus, we have the corresponding difference in entropy:
+\ba
+\Delta(K) 
+	& \equiv \text{Ent}(K) - \text{Ent}(K - 1) \\
+	& = -  \sum_{i=1}^n \sum_{j=1}^K t_{ij} \log t_{ij} + \sum_{i=1}^n \sum_{j=1}^{K - 1} t_{ij} \log t_{ij} \\
+	& = - \sum_{i=1}^n \left\{
+			\sum_{j \ne k, k'} t_{ij} \log t_{ij}
+			+ t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'}
+			+ \sum_{j \ne k \cup k'} t_{ij} \log t_{ij}
+			+ t_{i, k\cup k'} \log t_{i, k \cup k'}
+		\right\} \\
+	& = - \sum_{i=1}^n \left\{ t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'} \right\}
+		+ \sum_{i=1}^n t_{i,k\cup k'} \log t_{i, k \cup k'}
+\ea
+Thus, we choose clusters $k$ and $k'$ such that combining them maximizes $\Delta(K)$, i.e., yields the highest decrease in entropy moving from $K$ to $K - 1$ clusters, which is good since low entropy means a well-partitioned model 
+
+\section*{Appendix C: Expressions for $\nu_K$}
+Recall the BIC criterion, defined as
 \ba
 \text{BIC}(K) 
 	& = \log p(\bx | K, \estim{\theta_K})
-		- \frac{\nu_K}{2} \log(n)
+		- \frac{\nu_K}{2} \log(n).
 \ea
-wherea
+If we assume general covariance matrices $\Sigma_k$, then the number of model parameters is
 \ba
 \nu_K & = \dim \mathcal M_K \\
 	& = \dim \theta_K \\
@@ -232,11 +450,20 @@ wherea
 		+ \dim \left( \bolda_1, \dotsc, \bolda_K \right) \\
 	& = K - 1 + K \dim(\bolda_1) \\
 	& = K - 1 + K \left(\dim\left(\mu_1, \Sigma_1 \right) \right) \\
-	& = K - 1 + K \left[ m + m(m + 1)/2 \right]
+	& = K - 1 + K \left[ m + m(m + 1)/2 \right] \\
+	& = (K + 1)\left[ m + \frac{m(m + 1)}{2} \right] - 1. 
+\ea 
+
+\section*{Appendix D: Miscellaneous calculations}
+Conditional model probabilities given the data:
+\ba
+\Pr{M_\ell | \bx} & = \frac{f(\bx | M_\ell) \Pr{M_\ell}}{ f(\bx) } \\
+	& = \frac{f(\bx | M_\ell) \Pr{M_\ell}}{ \sum_{r = 1}^m f(\bx | M_r) \Pr{M_r} } \\
 \ea
-
-GvHD dataset in \texttt{mclust} package. 
-
+If $M_1 = \dotsc = M_m$, then
+\ba
+\Pr{M_\ell | \bx} & = \frac{f(\bx | M_\ell)}{ \sum_{r=1}^m f(\bx | M_r) }.
+\ea
 
 \end{document}
 
