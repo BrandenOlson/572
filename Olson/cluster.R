@@ -79,14 +79,17 @@ names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
 d52 <- d52_raw[d52_raw$CD3 > 280, ]
 
 K_min <- 1
-K_max <- 20
-Ks <- K_min:K_max
-mixmods <- list(NA, length(Ks))
-for(K in Ks) {
-    model_string <- paste0("m", K)
-    set.seed(13)
-    assign(model_string, mixmodCluster(d1, K))
-    mixmods[[K]] <- eval(parse(text=model_string))
-}
+K_max <- 6
+strategy <- mixmodStrategy(
+                           algo="EM",
+                           nbIterationInInit=10,
+                           nbIterationInAlgo=5000,
+                           initMethod="random"
+                          )
+mixmod <- mixmodCluster(d1, 
+                        K_min:K_max, 
+                        strategy=strategy,
+                        criterion="BIC"
+                        )
 
-K_BIC <- getKBIC(Ks, mixmods)
+K_BIC <- getKBIC(Ks, mixmod)
