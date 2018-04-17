@@ -1,6 +1,8 @@
 library(data.table)
 library(dplyr)
-library(Rmixmod)
+library(magrittr)
+library(mclust) # For fitting BIC 
+library(mvtnorm)
 
 readData <- function(filename, change_names=TRUE) {
     dat <- fread(filename)
@@ -21,45 +23,66 @@ getSlot <- function(mixmod_object, slot_name) {
         slot(slot_name)
 }
 
-getModelParameters <- function(mixmod_object) {
-    means <- mixmod_object %>%
-        getSlot("mean")
-    variances <- mixmod_object %>%
-        getSlot("variance")
-    return(list(Means=means,
-                Variances=variances))
+getModelParameters <- function(mod) {
+    params <- mod %$% 
+        parameters
+    means <- params$mean
+    variances <- params$variance$sigma
+    props <- params$pro
+    return(list(Mean=means,
+                Variance=variances,
+                Prop=props))
 }
 
-getModelLikelihood <- function(mixmod_object) {
-    lik <- mixmod_object %>%
-        slot("bestResult") %>%
-        slot("likelihood")
-    return(lik)
+getModelLikelihood <- function(dat, params) {
+    ell <- 0
+    prop <- params$Prop
+    means <- params$Mean
+    variances <- params$Variance
+    K <- params$Prop %>% length
+    n <- nrow(dat)
+    ell <- 0
+    for(i in 1:n) {
+        log_sum <- 0
+        for(k in 1:K) {
+            log_sum <- log_sum + prop[k]*dmvnorm(dat[i, ], 
+                                                 mean=means[, k],
+                                                 sigma=variances[, , k])
+        }
+        ell <- ell + log(log_sum)
+    }
+    return(ell)
 }
 
-getBICFromModel <- function(mixmod_object) {
-    bic <- mixmod_object %>%
-        slot("bestResult") %>%
-        slot("criterionValue")
-    return(bic)
+getConditionalProbability <- function(x_i, params, K) {
+    prop <- params$Prop
+    means <- params$Mean
+    variances <- params$Variance
+    probs <- {}
+    for(k in 1:K) {
+        probs[k] <- prop[k]*dmvnorm(x_i,
+                                     mean=means[, k],
+                                     sigma=variances[, , k]
+                                    ) 
+    }
+    t_ik <- probs/sum(probs)
+    z_i <- which.max(t_ik)
+    return(z_i)
+}
+
+getTs <- function(dat, params, K) {
+    ts <- {}
+    for(i in 1:nrow(dat)) {
+        ts[i] <- getConditionalProbability(dat[i, ],
+                                         params,
+                                         K)
+    }
+    return(ts)
 }
 
 BIC <- function(log_lik, nu, n) {
     bic <- log_lik - nu*log(n)/2
     return(bic)
-}
-
-getKBIC <- function(Ks, models) {
-    K_count <- length(Ks)
-    bics <- {}
-    for(i in 1:K_count) {
-        K <- Ks[i]
-        mod <- models[[i]]
-        bics[i] <- getBICFromModel(mod)
-    }  
-    K_BIC <- Ks[which.min(bics)]
-    print(bics)
-    return(K_BIC)
 }
 
 d1 <- readData("Data/4.1.csv")
@@ -79,17 +102,11 @@ names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
 d52 <- d52_raw[d52_raw$CD3 > 280, ]
 
 K_min <- 1
-K_max <- 6
-strategy <- mixmodStrategy(
-                           algo="EM",
-                           nbIterationInInit=10,
-                           nbIterationInAlgo=5000,
-                           initMethod="random"
-                          )
-mixmod <- mixmodCluster(d1, 
-                        K_min:K_max, 
-                        strategy=strategy,
-                        criterion="BIC"
-                        )
+K_max <- 10
 
-K_BIC <- getKBIC(Ks, mixmod)
+mc_BIC <- mclustBIC(d1)
+mc <- Mclust(d1, x=mc_BIC)
+
+mc_params <- mc %>% getModelParameters
+
+
