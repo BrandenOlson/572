@@ -1,20 +1,19 @@
-\documentclass[11pt]{article}
-\setlength{\topmargin}{-1in}
-\setlength{\textheight}{10in}
-\setlength{\oddsidemargin}{-0.25in}
-\setlength{\textwidth}{7in}
-\usepackage{mathpazo}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
+\documentclass{uwstat572}
+
+%%\setlength{\oddsidemargin}{0.25in}
+%%\setlength{\textwidth}{6in}
+%%\setlength{\topmargin}{0.5in}
+%%\setlength{\textheight}{9in}
+
+\renewcommand{\baselinestretch}{1.5} 
 
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
 \usepackage{appendix}
 \usepackage{array}
-\usepackage{bm}
+\usepackage{bbm}
 \usepackage{cancel}
-\usepackage{cite}
 \usepackage{courier}
 \usepackage{graphicx}
 \usepackage{empheq}
@@ -90,7 +89,7 @@
 \newcommand*\Cov[1]{\;\mathsf{Cov}\left(#1\right)}
 \newcommand*\iid{\overset{\text{iid}}{\sim}}
 \newcommand*\Exp[1][\lambda]{\text{Exp}(\text{rate}=#1)}
-\newcommand*\ind[1]{\mathbb{1}\left(#1\right)}
+\newcommand*\ind[1]{\mathbbm{1}\left(#1\right)}
 \newcommand*\set[1]{\left\{#1\right\}}
 \newcommand*\estim[1]{\widehat{#1}}
 \newcommand*\der{\text{d}}
@@ -114,7 +113,6 @@
 \newcommand*\bI{\mathbf{I}}
 \newcommand*\bell{\boldsymbol{\ell}}
 \newcommand*\bL{\mathbf{L}}
-\renewcommand*\bm{\mathbf{m}}
 \newcommand*\bN{\mathbf{N}}
 \newcommand*\bo{\mathbf{o}}
 \newcommand*\bp{\mathbf{p}}
@@ -157,26 +155,6 @@
 \newcommand\prox{\operatorname{prox}}
 \newcommand\T{\mathsf{T}}
 
-\newread\tmp
-\newcommand\getcount{
-	\openin\tmp=knot_count.txt
-	\read\tmp to \knots
-	\closein\tmp
-	
-	\openin\tmp=span.txt
-	\read\tmp to \spanval
-	\closein\tmp
-	
-	\openin\tmp=span_g.txt
-	\read\tmp to \spantwo
-	\closein\tmp
-	
-	\openin\tmp=span_g_2.txt
-	\read\tmp to \spanthree
-	\closein\tmp
-}
-
-
 \renewcommand\Re{\operatorname{Re}}
 \renewcommand\Im{\operatorname{Im}}
 \DeclareMathOperator*{\argmin}{arg\;min}
@@ -188,37 +166,111 @@
 \renewcommand\mod{\hspace{0.2em} \textbf{mod}\hspace{0.2em}}
 \renewcommand\Pr[1]{ \mathsf{Pr}\left(#1\right) }
 
-\newcolumntype{C}{>{$}c<{$}}
 
-\lstset{breaklines=true,
-        numbersep=5pt,
-        xleftmargin=.25in,
-        xrightmargin=.25in}
+\bibliographystyle{plainnat}
 
-\DeclareMathOperator{\sech}{sech}
-\DeclareMathOperator{\sgn}{sgn}
-\makeatletter
-\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
-  \hskip -\arraycolsep
-  \let\@ifnextchar\new@ifnextchar
-  \array{#1}}
-\makeatother
-
-\newenvironment{amatrix}[1]{%
-  \left(\begin{array}{@{}*{#1}{c}|c@{}}
-}{%
-  \end{array}\right)
-}
-\vspace{-1in}
 \begin{document}
-\title{A Report on "Combining Mixture Components for Clustering" by Baudry et al.}
-\author{Branden Olson}
-\date{}
-\maketitle
+%%\maketitle
 
-\section{Background and motivation} 
+\begin{center}
+  {\LARGE A Report On ``Combining Mixture Components for Clustering'' by Baudry et al.}\\\ \\
+  {Branden Olson\\ 
+    Department of Statistics, University of Washington Seattle, WA, 98195, USA
+  }
+\end{center}
 
 
+
+\begin{abstract}
+Model-based clustering assumes an underlying Gaussian mixture model, but often the number of mixture components is unknown. 
+The BIC criterion, commonly used in model selection, excels at inferring the number of components, but frequently overestimates the number of clusters. 
+An extension known as the ICL criterion, which penalizes model entropy, assuages this to yield a more accurate cluster count, although falls flat for non-Gaussian cluster distributions. 
+\citet{Baudry10} propose a method with combines the strengths of the two approaches, yielding a sequence of clusterings starting from the BIC solution, and iteratively merging clusters to minimize the resultant entropy.
+This method is applied to simulated and real data, demonstrating superior performance in each case.
+\end{abstract}
+
+\section{Introduction}
+
+Many situations arise in which collected data points must be clustered into similar subgroups. 
+For example, we might wish to cluster DNA sequences from a number of species into phylogenetic families, or categorize X-ray data readings by the galaxies from which the waves originated.
+In general, we consider clusters to be contiguous, densely-populated regions of a feature space, separated by contiguous, relatively empty regions.
+The problem of clustering can be quite challenging as the usual difficulties of modeling the underlying distribution are compounded by the absence of information about the nature of the clusters.
+Indeed, the field of clustering contains a broad and vast set of approaches based on various assumptions of the data-generating mechanism and cluster specifications.
+
+One such category, known as model-based clustering, assumes that the data points 
+$\bX_1, \dotsc, \bX_n$ were generated from a mixture model and can be assigned cluster labels based on their most likely mixture components.
+For continuous data, model-based clustering typically assumes that each point $\bX_i$ is generated from a multivariate Gaussian mixture model. 
+That is, given $K$ mixture components, we decompose the density of $\bx_i$ as
+\ba
+f(\bx_i | K, \btheta_K)
+	& = \sum_{i=k}^K p_k \phi \left(\bx_i ; \mu_k, \Sigma_k \right).
+\ea
+Here, $p_k, k = 1, \dotsc, K$ are the mixture proportions, or the marginal probabilities for each component to generate a new data point a priori, so that $p_k \ge 0 \; \forall k$ and $\sum_{k=1}^K p_k = 1$; $\phi(\cdot; \mu_k, \Sigma_k)$ is the $d$-variate Gaussian density with mean $\mu_k$ and covariance matrix $\Sigma_k$; and $\btheta_K = (\bp, \bmu, \bSigma) = (p_1, \dotsc, p_{K - 1}, \mu_1, \dotsc, \mu_k, \Sigma_1, \dotsc, \Sigma_K)$.
+
+It's useful to frame the problem as observing incomplete or censored data from a ``complete'' experiment where the components that generate each data point are known. Notationally, each "complete" data point is a pair $(\bx_i, \bz_i)$, where 
+$\bz_i \in \reals^K$ define the cluster memberships, such that $z_{ik} = \ind{\bx_i \text{ was generated from component $k$}}$.  
+If $K$ is fixed, parameters can be estimated using EM algorithm by incorporating the density of each complete data pair,
+\ba
+f(\bx_i, \bz_i | K, \btheta_K)
+	& = \prod_{k=1}^K \left[ p_k \phi(\bx_i | \mu_k, \Sigma_k) \right]^{z_{ik}}
+\ea
+whose derivation is given in Appendix A.
+The EM algorithm is appropriate here since the true component assignments $\bz_i$ can be considered as ``missing'' data on which we can compute conditional expectations given the observed data.
+
+
+The goal in many clustering problems is to choose the number of components $K$ either based on previous knowledge, or perhaps without any other information.
+\citet{Dasgupta98} were the first to propose using the BIC to select the number of components, which in this context is synonymous with the number of clusters. 
+That is, given a set of candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$, compute the MLE estimates for each $K$, and then choose the $K$ which minimizes the BIC (Bayesian information criterion), defined as
+\ba
+\text{BIC}(K) 
+	& = \log p(\bx | K, \estim\btheta_{K, \text{MLE}})
+		- \frac{ \nu_K \log(n) }{2}.
+\ea
+Here,
+$f(\bx | K, \btheta_K) = \prod_{i = 1}^n f(\bx_i | K, \btheta_K)$ is the density of the full dataset $\bx_1, \dotsc, \bx_n$, and
+ $\nu_K$ is the number of parameters of the $K$-component model.
+The BIC criterion can be viewed as an approximation to the integrated likelihood
+\ba
+\text{IL}(\bx | K)
+	& = \int_{\Theta_K} f(\bx | K, \btheta_K) \der \pi(\btheta_K)
+\ea
+where $\pi(\cdot)$ is a prior distribution over the parameter space $\bTheta_K$.
+Under certain regularity conditions, the BIC can be shown to generally estimate the number of components well.
+However, a drawback of this approach is that it implicitly assumes that each mixture component corresponds to its own cluster which is not always desriable.
+In other words, some clusters would be better estimated as mixtures of Gaussians themselves, which is unattainable with this approach. 
+
+\citet{Biernacki00} modify this approach by introducing the ICL criterion, namely,
+\ba
+\estim{\text{ICL}}(K)
+	& \approx 
+	\log f(\bx, \estim\bz | K, \estim\theta_{K, \text{MLE}}) + \frac{ \nu_K \log(n) }{2}
+\ea
+an approximation of the integrated complete likelihood of the data. 
+Here, $f(\bx, \bz | K, \btheta) = \prod_{i=1}^n f(\bx_i, \bz_i | K, \btheta)$ is the complete density of the full dataset.
+Since we don't know the values of $\bz_i$, we must plug in estimates $\estim\bz_i$ using, for example, maximum a posteriori (MAP) estimates.
+Analogously to the BIC, this criterion approximates the integrated complete likelihood
+\ba
+\text{ICL}(\bx, \bz | K)
+	& = \int_{\Theta_K} f(\bx, \bz | K, \btheta_K) \; \der \pi(\btheta_K).
+\ea
+It turns out that the ICL can also be seen as a penalization of the BIC criterion based on the mean Shannon entropy of the fitted model with $K$ components, 
+\ba
+\text{Ent}(K)
+	& = - \sum_{i=1}^n \sum_{k = 1}^K t_{ik}(\estim\btheta_K) \log t_{ik}(\estim\btheta_K)
+\ea
+The mathematical details of this decomposition be found in Appendix A.
+Because of the entropy penalty, which favors well-separated clusters over connected or jumbled ones, the ICL criterion tends to choose a smaller $K$ than the BIC.
+This often leads an underestimation of mixture components, but a potentially more reasonable estimated number of clusters.
+Furthermore, as in the BIC case, the ICL is restricted to Gaussian models of possibly non-Gaussian cluster distributions.
+
+
+\section{Methods}
+
+\section{Results}
+
+\section{Discussion}
+
+\bibliography{stat572}
 
 \section*{Appendix A: Theoretical foundations for ICL}
 The likelihood for one observation is
@@ -287,11 +339,12 @@ L(\theta_K) - \text{EC}(K)
 		\log\left(\sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
 		+ \sum_{k=1}^K z_{ik} \log\left( \frac{p_k \phi(\bx_i | \mu_k, \Sigma_k)}{ \sum_{j=1}^K p_j \phi(\bx_i | \mu_j, \Sigma_j) } \right)
 		\right\} \\
-	& = \sum_{i=1}^n \left\{
+	& = \sum_{i=1}^n \Bigg\{
 		\log\left(\sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
-		+ \sum_{k=1}^K z_{ik} \left[ \log\left( p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
+		\\
+	& \htab + \sum_{k=1}^K z_{ik} \left[ \log\left( p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
 		- \log \left( \sum_{j=1}^K p_j \phi(\bx_i | \mu_j, \Sigma_j) \right) \right]
-		\right\} \\
+		\Bigg\} \\
 	& = \sum_{i=1}^n \sum_{k=1}^K z_{ik} \log(p_k \phi(\bx_i | \mu_k, \Sigma_k))
 		+ \sum_{i=1}^n \log\left(\sum_{k=1}^K p_k \phi(\bx_i | \mu_k, \Sigma_k) \right)
 			\underbrace{\left[ 1 - \sum_{i=1}^K z_{ik} \right]}_{=0} \\
@@ -347,13 +400,13 @@ t_{i, k \cup k'}^K
 	& = \Pr{\bx_i \text{ comes from $k$th component }} + \Pr{\bx_i \text{ comes from $k'$th component} } \\
 	& = t_{ik}^K + t_{ik'}^K
 \ea
-Then the resultant entropy (after possibly relabeling the indices) is
+Then the resultant entropy (after relabeling the indices) is
 \ba
 \text{Ent}(K - 1) & = - \sum_{k=1}^{K - 1} \sum_{i=1}^n t_{ik} \log t_{ik} \\
 	& = - \sum_{i=1}^n \left( \sum_{j \ne k \cup k'} t_{ij} \log(t_{ij}) + t_{i,k \cup k'} \log( t_{i,k\cup k'} ) \right) \\
-	& = - \sum_{i=1}^n \left( \sum_{j \ne k \cup k'} t_{ij} \log(t_{ij}) + (t_{i,k}^K + t_{i,k'}^K) \log( t_{ik}^K + t_{ik'}^K) \right) \\
+	& = - \sum_{i=1}^n \left( \sum_{j \ne k \cup k'} t_{ij} \log(t_{ij}) + (t_{i,k}^K + t_{i,k'}^K) \log( t_{ik}^K + t_{ik'}^K) \right).
 \ea
-Thus, we have the corresponding difference in entropy:
+Then we have the corresponding difference in entropy:
 \ba
 \Delta(K) 
 	& \equiv \text{Ent}(K) - \text{Ent}(K - 1) \\
@@ -386,7 +439,7 @@ If we assume general covariance matrices $\Sigma_k$, then the number of model pa
 	& = K - 1 + K \dim(\bolda_1) \\
 	& = K - 1 + K \left(\dim\left(\mu_1, \Sigma_1 \right) \right) \\
 	& = K - 1 + K \left[ m + m(m + 1)/2 \right] \\
-	& = (K + 1)\left[ m + \frac{m(m + 1)}{2} \right] - 1. 
+	& = K\left[1 + m + \frac{m(m + 1)}{2} \right] - 1. 
 \ea 
 
 \section*{Appendix D: Miscellaneous calculations}
@@ -401,14 +454,6 @@ If $M_1 = \dotsc = M_m$, then
 \ea
 
 \end{document}
-
-
-
-
-
-
-
-
 
 
 

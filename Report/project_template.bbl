@@ -1,0 +1,29 @@
+\begin{thebibliography}{3}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Baudry et~al.(2010)Baudry, Raftery, Celeux, Lo, and
+  Gottardo]{Baudry10}
+J.~Baudry, A.E. Raftery, G.~Celeux, K.~Lo, and R.~Gottardo.
+\newblock Combining mixture components for clustering.
+\newblock \emph{Journal of Computational and Graphical Statistics}, 19\penalty0
+  (2):\penalty0 332--353, 2010.
+
+\bibitem[Biernacki et~al.(2000)Biernacki, Celeux, and Govaert]{Biernacki00}
+C.~Biernacki, G.~Celeux, and G.~Govaert.
+\newblock Assessing a mixture model for clustering with the integrated
+  completed likelihood.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 22:\penalty0 719--725, 2000.
+
+\bibitem[Dasgupta and Raftery(1998)]{Dasgupta98}
+A.~Dasgupta and A.E. Raftery.
+\newblock Detecting features in spatial point processes with clutter via
+  model-based clustering.
+\newblock \emph{Journal of the American Statistical Association}, 93:\penalty0
+  294--302, 1998.
+
+\end{thebibliography}
