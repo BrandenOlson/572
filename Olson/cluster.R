@@ -148,6 +148,7 @@ combineDensities <- function(f1, f2) {
 }
 
 getDensityFunction <- function(f) {
+    print(length(f))
     num_components <- length(f$Props)
     d <- function(x) {
         res <- 0
@@ -161,19 +162,60 @@ getDensityFunction <- function(f) {
     return(d)
 }
 
+plotDensities <- function(density_list,
+                          output_prefix,
+                          xrange,
+                          yrange,
+                          dat,
+                          num_points=100
+                          ) {
+    color <- 1
+    pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
+    plot(dat, pch=19)
+    for(density_object in density_list) {
+        print(length(density_object))
+        d <- density_object %>%
+            getDensityFunction
+        xs <- seq(xrange[1], xrange[2], length.out=num_points)
+        ys <- seq(yrange[1], yrange[2], length.out=num_points)
+        z <- matrix(0, nrow=num_points, ncol=num_points)
+        for(i in 1:m) {
+            for(j in 1:m) {
+                z[i, j] <- d(c(xs[i], ys[j]))
+            }
+        }
+
+        if(FALSE) {
+            pdf(paste0(output_prefix, "_density.pdf"), width=10, height=6)
+            surface3d(xs, ys, z, col="lightgreen")
+            aspect3d(1, 1, 1)
+            bbox3d(back="lines")
+            dev.off()
+        }
+
+        contour(x=xs, y=ys, z, col=color, levels=0.01, add=TRUE)
+        color <- color + 1
+    }
+    dev.off()
+}
+
 f <- combineDensities(fs[[1]], fs[[2]])
 f <- fs[[1]] %>% combineDensities(fs[[2]]) %>%
     combineDensities(fs[[3]]) %>%
     combineDensities(fs[[4]]) %>%
     combineDensities(fs[[5]]) %>%
     combineDensities(fs[[6]])
-d <- getDensityFunction(f)
-m <- 100
-xs <- seq(-4, 10, length.out=m)
-ys <- seq(-4, 10, length.out=m)
-z <- matrix(0, nrow=m, ncol=m)
-for(i in 1:m) for(j in 1:m) z[i, j] <- d(c(xs[i], ys[j]))
 
-surface3d(xs, ys, z, col="lightgreen")
-aspect3d(1, 1, 1)
-bbox3d(back="lines")
+plotDensities(list(f),
+            output_prefix="Figures/d1_combined",
+            xrange=range(d1[, 1]),
+            yrange=range(d1[, 2]),
+            dat=d1
+            )
+
+plotDensities(fs,
+            output_prefix="Figures/d1_BIC",
+            xrange=range(d1[, 1]),
+            yrange=range(d1[, 2]),
+            dat=d1
+            )
