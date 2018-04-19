@@ -100,29 +100,6 @@ getEntropy <- function(ts) {
     return(ent)
 }
 
-d1 <- readData("Data/4.1.csv")
-d2 <- readData("Data/4.2.csv")
-d3 <- readData("Data/4.3.csv")
-d41 <- readData("Data/4.4.1.csv")
-d42 <- readData("Data/4.4.2.csv")
-
-d51_raw <- readData("Data/GvHD+.csv", change_names=FALSE)
-names(d51_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
-
-d52_raw <- readData("Data/GvHD-.csv", change_names=FALSE)
-names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
-
-K_min <- 1
-K_max <- 10
-
-mc_BIC <- mclustBIC(d1)
-mc <- Mclust(d1, x=mc_BIC)
-mc_params <- mc %>% getModelParameters
-ts <- getTs(d1, mc_params)
-zs <- getZs(ts)
-plot(d1, col=zs, pch=19)
-ent <- getEntropy(ts)
-
 getDensities <- function(params) {
     K <- length(params$Prop)
     fs <- vector(mode="list",
@@ -169,7 +146,7 @@ plotDensities <- function(density_list,
                           dat,
                           num_points=100
                           ) {
-    color <- 1
+    color <- 2 # Skip black (1) since points are black 
     pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
     plot(dat, pch=19)
     for(density_object in density_list) {
@@ -193,12 +170,42 @@ plotDensities <- function(density_list,
             dev.off()
         }
 
-        contour(x=xs, y=ys, z, col=color, levels=0.01, add=TRUE)
+        contour(x=xs, y=ys, z, 
+                col=color, 
+                levels=0.01, 
+                add=TRUE,
+                drawlabels=FALSE)
         color <- color + 1
     }
     dev.off()
 }
 
+d1 <- readData("Data/4.1.csv")
+d2 <- readData("Data/4.2.csv")
+d3 <- readData("Data/4.3.csv")
+d41 <- readData("Data/4.4.1.csv")
+d42 <- readData("Data/4.4.2.csv")
+
+d51_raw <- readData("Data/GvHD+.csv", change_names=FALSE)
+names(d51_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
+
+d52_raw <- readData("Data/GvHD-.csv", change_names=FALSE)
+names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
+
+K_min <- 1
+K_max <- 10
+
+mc_BIC <- mclustBIC(d1)
+mc <- Mclust(d1, x=mc_BIC)
+mc_params <- mc %>% getModelParameters
+ts <- getTs(d1, mc_params)
+zs <- getZs(ts)
+plot(d1, col=zs, pch=19)
+ent <- getEntropy(ts)
+
+
+fs <- mc_params %>% 
+    getDensities
 f <- combineDensities(fs[[1]], fs[[2]])
 f <- fs[[1]] %>% combineDensities(fs[[2]]) %>%
     combineDensities(fs[[3]]) %>%
