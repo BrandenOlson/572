@@ -16,13 +16,6 @@ readData <- function(filename, change_names=TRUE) {
     return(dat)
 }
 
-getSlot <- function(mixmod_object, slot_name) {
-    slot_value <- mixmod_object %>%
-        slot("bestResult") %>%
-        slot("parameters") %>%
-        slot(slot_name)
-}
-
 getModelParameters <- function(mod) {
     params <- mod %$% 
         parameters
@@ -54,17 +47,19 @@ getModelLikelihood <- function(dat, params) {
     return(ell)
 }
 
-getConditionalProbability <- function(x_i, params) {
-    prop <- params$Prop
-    means <- params$Mean
-    variances <- params$Variance
-    K <- length(prop)
+getComponentProbability <- function(x_i, density_object) {
+    d <- density_object %>% getDensityFunction
+    prob <- d(x_i)
+    return(prob)
+}
+
+getConditionalProbability <- function(x_i, components) {
+    K <- length(components)
     probs <- {}
     for(k in 1:K) {
-        probs[k] <- prop[k]*dmvnorm(x_i,
-                                     mean=means[, k],
-                                     sigma=variances[, , k]
-                                    ) 
+        component_density <- components[[k]]
+        probs[k] <- getComponentProbability(x_i,
+                                            component_density)
     }
     t_ik <- probs/sum(probs)
     return(t_ik)
@@ -75,11 +70,11 @@ getMAP <- function(t_ik) {
     return(z_i)
 }
 
-getTs <- function(dat, params, K) {
+getTs <- function(dat, components, K) {
     ts <- {}
     for(i in 1:nrow(dat)) {
         ts[[i]] <- getConditionalProbability(dat[i, ],
-                                             params)
+                                             components)
     }
     return(ts)
 }
@@ -121,11 +116,10 @@ combineDensities <- function(f1, f2) {
               Var=c(f1$Var,
                     f2$Var)
               )
-    return(f)
+    return(list(f))
 }
 
 getDensityFunction <- function(f) {
-    print(length(f))
     num_components <- length(f$Props)
     d <- function(x) {
         res <- 0
@@ -150,14 +144,13 @@ plotDensities <- function(density_list,
     pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
     plot(dat, pch=19)
     for(density_object in density_list) {
-        print(length(density_object))
         d <- density_object %>%
             getDensityFunction
         xs <- seq(xrange[1], xrange[2], length.out=num_points)
         ys <- seq(yrange[1], yrange[2], length.out=num_points)
         z <- matrix(0, nrow=num_points, ncol=num_points)
-        for(i in 1:m) {
-            for(j in 1:m) {
+        for(i in 1:num_points) {
+            for(j in 1:num_points) {
                 z[i, j] <- d(c(xs[i], ys[j]))
             }
         }
@@ -180,49 +173,117 @@ plotDensities <- function(density_list,
     dev.off()
 }
 
-d1 <- readData("Data/4.1.csv")
-d2 <- readData("Data/4.2.csv")
-d3 <- readData("Data/4.3.csv")
-d41 <- readData("Data/4.4.1.csv")
-d42 <- readData("Data/4.4.2.csv")
+deltaEntropy <- function(j,
+                         k,
+                         ts
+                         ){
+    delta <- 0
+    for(i in 1:length(ts)) {
+        t_ij <- ts[[i]][j]
+        t_ik <- ts[[i]][k]
+        t_union <- t_ij + t_ik
+        delta <- delta + t_union*log(t_union) - t_ij*log(t_ij) - t_ik*log(t_ik)
+    } 
+    return(delta)
+}
 
-d51_raw <- readData("Data/GvHD+.csv", change_names=FALSE)
-names(d51_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
+argmaxDelta <- function(ts, K) {
+    argmax <- {}
+    max_delta <- -Inf
+    for(j in 1:K) {
+        for(k in 1:K) {
+            if(j != k) {
+                delta <- deltaEntropy(j, k, ts)
+                if(delta > max_delta) {
+                    cat(delta, max_delta, '\n')
+                    max_delta <- delta
+                    argmax <- c(j, k) 
+                }
+            }
+        }
+    }
+    return(argmax)
+}
 
-d52_raw <- readData("Data/GvHD-.csv", change_names=FALSE)
-names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
+mergeClusters <- function(components, ts) {
+    K <- length(components)
+    argmax <- argmaxDelta(ts, K)
+    new_components <- list()
+    merged <- FALSE
+    for(i in 1:K) {
+        if(i %in% argmax) {
+            if(!merged) {
+                new_components <- c(new_components,
+                                    combineDensities(components[[argmax[1]]],
+                                                        components[[argmax[2]]])
+                                    )
+                merged <- TRUE
+            }
+        }
+        else {
+            new_components <- c(new_components,
+                                list(components[[i]]))
+        }
+    }
+    return(new_components)
+}
 
-K_min <- 1
-K_max <- 10
+if(FALSE) {
+    d1 <- readData("Data/4.1.csv")
+    d2 <- readData("Data/4.2.csv")
+    d3 <- readData("Data/4.3.csv")
+    d41 <- readData("Data/4.4.1.csv")
+    d42 <- readData("Data/4.4.2.csv")
+    
+    d51_raw <- readData("Data/GvHD+.csv", change_names=FALSE)
+    names(d51_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
+    
+    d52_raw <- readData("Data/GvHD-.csv", change_names=FALSE)
+    names(d52_raw) <- c("CD4", "CD8beta", "CD3", "CD8")
+    
+    K_min <- 1
+    K_max <- 10
 
-mc_BIC <- mclustBIC(d1)
-mc <- Mclust(d1, x=mc_BIC)
-mc_params <- mc %>% getModelParameters
-ts <- getTs(d1, mc_params)
-zs <- getZs(ts)
-plot(d1, col=zs, pch=19)
-ent <- getEntropy(ts)
+    working_dat <- d1
+    mc_BIC <- mclustBIC(working_dat)
+    mc <- Mclust(working_dat, x=mc_BIC)
+    mc_params <- mc %>% getModelParameters
+    densities <- mc_params %>% getDensities
+    ts <- getTs(working_dat, densities)
+    zs <- getZs(ts)
+    plot(working_dat, col=zs, pch=19)
+    ent <- getEntropy(ts)
 
+    fs <- mc_params %>% 
+        getDensities
+    f <- combineDensities(fs[[1]], fs[[2]])
 
-fs <- mc_params %>% 
-    getDensities
-f <- combineDensities(fs[[1]], fs[[2]])
-f <- fs[[1]] %>% combineDensities(fs[[2]]) %>%
-    combineDensities(fs[[3]]) %>%
-    combineDensities(fs[[4]]) %>%
-    combineDensities(fs[[5]]) %>%
-    combineDensities(fs[[6]])
+    plotDensities(list(f),
+                output_prefix="Figures/d1_combined",
+                xrange=range(working_dat[, 1]),
+                yrange=range(working_dat[, 2]),
+                dat=working_dat
+                )
+    
+    plotDensities(fs,
+                output_prefix="Figures/d1_BIC",
+                xrange=range(working_dat[, 1]),
+                yrange=range(working_dat[, 2]),
+                dat=working_dat
+                )
+}
 
-plotDensities(list(f),
-            output_prefix="Figures/d1_combined",
-            xrange=range(d1[, 1]),
-            yrange=range(d1[, 2]),
-            dat=d1
-            )
+merged <- mergeClusters(fs, ts)
+t_merged <- getTs(working_dat, merged)
+plotDensities(merged,
+              output_prefix="Figures/merged",
+              xrange=range(working_dat[, 1]),
+              yrange=range(working_dat[, 2]),
+              dat=working_dat)
 
-plotDensities(fs,
-            output_prefix="Figures/d1_BIC",
-            xrange=range(d1[, 1]),
-            yrange=range(d1[, 2]),
-            dat=d1
-            )
+merged_2 <- mergeClusters(merged, t_merged)
+plotDensities(merged_2,
+              output_prefix="Figures/merged_2",
+              xrange=range(working_dat[, 1]),
+              yrange=range(working_dat[, 2]),
+              dat=working_dat)
