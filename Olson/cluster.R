@@ -16,6 +16,16 @@ readData <- function(filename, change_names=TRUE) {
     return(dat)
 }
 
+getModel <- function(dat,
+                     G,
+                     model_names=NULL) {
+    mc_BIC <- mclustBIC(dat,
+                        G=G,
+                        modelNames=model_names)
+    mc <- Mclust(dat, x=mc_BIC)
+    return(mc)
+}
+
 getModelParameters <- function(mod) {
     params <- mod %$% 
         parameters
@@ -27,20 +37,20 @@ getModelParameters <- function(mod) {
                 Prop=props))
 }
 
-getModelLikelihood <- function(dat, params) {
+# Super slow
+getModelLikelihood <- function(dat, components) {
     ell <- 0
-    prop <- params$Prop
-    means <- params$Mean
-    variances <- params$Variance
-    K <- params$Prop %>% length
+    K <- components %>% length
     n <- nrow(dat)
     ell <- 0
     for(i in 1:n) {
         log_sum <- 0
         for(k in 1:K) {
-            log_sum <- log_sum + prop[k]*dmvnorm(dat[i, ], 
-                                                 mean=means[, k],
-                                                 sigma=variances[, , k])
+            log_sum <- log_sum + 
+                components[[k]]$Prop[[1]]*dmvnorm(
+                    dat[i, ], 
+                    mean=components[[k]]$Mean[[1]],
+                    sigma=components[[k]]$Var[[1]])
         }
         ell <- ell + log(log_sum)
     }
@@ -71,11 +81,7 @@ getMAP <- function(t_ik) {
 }
 
 getTs <- function(dat, components, K) {
-    ts <- {}
-    for(i in 1:nrow(dat)) {
-        ts[[i]] <- getConditionalProbability(dat[i, ],
-                                             components)
-    }
+    ts <- dat %>% apply(1, getConditionalProbability, components=components)
     return(ts)
 }
 
@@ -141,10 +147,14 @@ plotDensities <- function(density_list,
     color <- 2 # Skip black (1) since points are black 
     xrange <- range(dat[, 1])
     yrange <- range(dat[, 2])
+    xrange <- c(xrange[1] - length(xrange)*0.2,
+              xrange[2] + length(xrange)*0.2)
+    yrange <- c(yrange[1] - length(yrange)*0.2,
+              yrange[2] + length(yrange)*0.2)
     xs <- seq(xrange[1], xrange[2], length.out=num_points)
     ys <- seq(yrange[1], yrange[2], length.out=num_points)
     pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
-    plot(dat, pch=19)
+    plot(dat, xlim=xrange, ylim=yrange, pch=19)
     for(density_object in density_list) {
         d <- density_object %>%
             getDensityFunction

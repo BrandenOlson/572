@@ -1,13 +1,13 @@
 runAnalysis <- function(working_dat,
                         model_names=NULL,
                         output_dir,
+                        K_min=1,
                         K_max=12
                         ) {
 
-    mc_BIC <- mclustBIC(working_dat,
-                        G=1:K_max,
-                        modelNames=model_names)
-    mc <- Mclust(working_dat, x=mc_BIC)
+    mc <- getModel(working_dat,
+                   G=K_min:K_max,
+                   model_names)
     mc_params <- mc %>% getModelParameters
     densities <- mc_params %>% getDensities
     K_BIC <- densities %>% length
@@ -36,7 +36,6 @@ runAnalysis <- function(working_dat,
            cluster_seq,
            plot_names
     )
-    
 }
 
 runAnalysis(d1,
@@ -44,3 +43,7 @@ runAnalysis(d1,
 runAnalysis(d2,
             model_names="VVI",
             output_dir="Figures/d2/")
+runAnalysis(d3,
+            model_names="VII",
+            output_dir="Figures/d3/",
+            K_min=4)
