@@ -1,4 +1,6 @@
 source("cluster.R")
+source("EM.R")
+source("processData.R")
 
 runAnalysis <- function(working_dat,
                         model_names=NULL,
@@ -12,11 +14,11 @@ runAnalysis <- function(working_dat,
                    model_names)
     mc_params <- mc %>% getModelParameters
     densities <- mc_params %>% getDensities
+    # mc_params <- runEM(K, working_dat)
     K_BIC <- densities %>% length
     ts <- getTs(working_dat, densities)
     zs <- getZs(ts)
     plot(working_dat, col=zs, pch=19)
-    ent <- getEntropy(ts)
     
     fs <- mc_params %>% 
         getDensities
@@ -42,6 +44,7 @@ runAnalysis <- function(working_dat,
 
 runAnalysis(d1,
             output_dir="Figures/d1/")
+stop()
 runAnalysis(d2,
             model_names="VVI",
             output_dir="Figures/d2/")

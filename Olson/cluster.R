@@ -60,6 +60,33 @@ getModelLikelihood <- function(dat, components) {
     return(log_sum)
 }
 
+getDensities <- function(params) {
+    K <- length(params$Prop)
+    fs <- vector(mode="list",
+                 length=K)
+    for(k in 1:K) {
+        fs[[k]] <- list(Props=list(params$Prop[k]),
+                        Mean=list(params$Mean[, k]),
+                        Var=list(params$Variance[, , k])
+                        )
+    }
+    return(fs)
+}
+
+getDensityFunction <- function(f) {
+    num_components <- length(f$Props)
+    d <- function(x) {
+        res <- 0
+        for(i in 1:num_components) {
+            res <- res + f$Props[[i]]*dmvn(x %>% as.numeric, 
+                                              mu=f$Mean[[i]],
+                                              sigma=f$Var[[i]])
+        }
+        return(res)
+    }
+    return(d)
+}
+
 getComponentProbability <- function(x_i, density_object) {
     d <- density_object %>% getDensityFunction
     prob <- d(x_i)
@@ -83,7 +110,7 @@ getMAP <- function(t_ik) {
 
 getTs <- function(dat, components, K) {
     ts <- dat %>% 
-        apply(1, getConditionalProbability, components=components)
+        plyr::alply(1, getConditionalProbability, components=components)
     return(ts)
 }
 
@@ -103,19 +130,6 @@ getEntropy <- function(ts) {
     return(ent)
 }
 
-getDensities <- function(params) {
-    K <- length(params$Prop)
-    fs <- vector(mode="list",
-                 length=K)
-    for(k in 1:K) {
-        fs[[k]] <- list(Props=list(params$Prop[k]),
-                        Mean=list(params$Mean[, k]),
-                        Var=list(params$Variance[, , k])
-                        )
-    }
-    return(fs)
-}
-
 combineDensities <- function(f1, f2) {
     f <- list(Props=c(f1$Prop,
                       f2$Prop),
@@ -125,20 +139,6 @@ combineDensities <- function(f1, f2) {
                     f2$Var)
               )
     return(list(f))
-}
-
-getDensityFunction <- function(f) {
-    num_components <- length(f$Props)
-    d <- function(x) {
-        res <- 0
-        for(i in 1:num_components) {
-            res <- res + f$Props[[i]]*dmvn(x, 
-                                              mu=f$Mean[[i]],
-                                              sigma=f$Var[[i]])
-        }
-        return(res)
-    }
-    return(d)
 }
 
 plotDensities <- function(density_list,
