@@ -18,7 +18,7 @@ createComponents <- function(p_init,
 
 initializeEM <- function(K,
                          dat,
-                         trial_count=20
+                         trial_count=10
                          ) {
     print("Initializing the parameters for EM...")
     liks <- {}
@@ -44,24 +44,25 @@ initializeEM <- function(K,
         liks[i] <- getModelLikelihood(dat,
                                   components[[i]])
     }
-    print(liks)
     return(components[[which.max(liks)]])
 }
 
 runEM <- function(K, 
                   dat,
                   components,
-                  tol=1e-4
+                  tol=1e-4,
+                  max_iterations=50
                   ) {
     print("Running the EM algorithm...")
     dat <- dat %>% as.matrix
 
     n <- nrow(dat)
-    theta <- getModelLikelihood(dat, components)
+    likelihood <- getModelLikelihood(dat, components)
     error <- Inf
-    while(error > tol) {
-        print(error)
-        theta_prev <- theta
+    iteration <- 1
+    while(error > tol && iteration <= max_iterations) {
+        cat(error, likelihood, '\n')
+        likelihood_prev <- likelihood
         tik <- getTs(dat, 
                      components,
                      K
@@ -72,23 +73,25 @@ runEM <- function(K,
 
         for(k in 1:K) {
             components[[k]]$Props <- list(ps[k])
+            tk <- tik[k, ] %>% as.matrix
             mu_k <- 0
-            for(i in 1:n) {
-                mu_k <- mu_k + dat[i, ]*tik[k, i]
-            }
+            mu_k <- tk %*% dat
             components[[k]]$Mean <- list(mu_k/ti_sums[k])
 
             Sigma_k <- 0
-            for(i in 1:n) {
-                y_center <- (dat[i, ] - components[[k]]$Mean[[1]])
-                Sigma_k <- Sigma_k + 
-                    tik[k, i] * (y_center %*% t(y_center))
-            }
+            Sigma_k <- dat %>% 
+                sweep(2, components[[k]]$Mean[[1]]) %>% # Subtract mu_k fro dat
+                plyr::alply(1, tcrossprod) %>% # Compute outer product of each row
+                Map("*", ., tk) %>% # Multiply each matrix the t_ik
+                Reduce("+", .) # Sum matrices
+
             components[[k]]$Var <- list(Sigma_k/ti_sums[k])
         }
 
-        theta <- getModelLikelihood(dat, components)
-        error <- abs(theta_prev - theta)/abs(theta_prev)
+        likelihood <- getModelLikelihood(dat, components)
+        error <- abs(likelihood_prev - likelihood)/abs(likelihood_prev)
+        components %>% plotDensities(dat=dat)
+        iteration <- iteration + 1
     }
     return(components)
 }
@@ -107,12 +110,11 @@ Sigma_init <- list(diag(rep(1, 2)),
 comp_init <- initializeEM(K,
                           d1)
 
+comp_init %>% plotDensities(dat=d1)
+
 theta_mle <- runEM(K=K,
                    dat=d1,
                    components=comp_init
                   )
 
-comp_init %>% plotDensities(dat=d1,
-                            output_prefix="random")
-theta_mle %>% plotDensities(dat=d1,
-                            output_prefix="test")
+theta_mle %>% plotDensities(dat=d1)

@@ -43,18 +43,25 @@ getModelLikelihood <- function(dat, components) {
     K <- components %>% length
     n <- nrow(dat)
     ell <- 0
-    for(i in 1:n) {
-        log_sum <- 0
-        for(k in 1:K) {
-            log_sum <- log_sum + 
-                components[[k]]$Prop[[1]]*dmvnorm(
-                    dat[i, ], 
-                    mean=components[[k]]$Mean[[1]],
-                    sigma=components[[k]]$Var[[1]])
-        }
-        ell <- ell + log(log_sum)
-    }
-    return(ell)
+    log_sum <- dat %>% 
+        apply(1,
+              function(x) {
+                  res <- components %>% 
+                      sapply(function(y) { 
+                                y$Prop[[1]]*dmvn(
+                                    x, 
+                                    mu=y$Mean[[1]],
+                                    sigma=y$Var[[1]],
+                                    log=TRUE
+                                )
+                             }
+                      ) %>%
+                  sum
+                  return(res)
+               }
+        ) %>%
+        sum 
+    return(log_sum)
 }
 
 getComponentProbability <- function(x_i, density_object) {
@@ -65,12 +72,10 @@ getComponentProbability <- function(x_i, density_object) {
 
 getConditionalProbability <- function(x_i, components) {
     K <- length(components)
-    probs <- {}
-    for(k in 1:K) {
-        component_density <- components[[k]]
-        probs[k] <- getComponentProbability(x_i,
-                                            component_density)
-    }
+    probs <- components %>%
+        sapply(function(c) { getComponentProbability(x_i,
+                                                     c)
+                      })
     t_ik <- probs/sum(probs)
     return(t_ik)
 }
@@ -81,7 +86,8 @@ getMAP <- function(t_ik) {
 }
 
 getTs <- function(dat, components, K) {
-    ts <- dat %>% apply(1, getConditionalProbability, components=components)
+    ts <- dat %>% 
+        apply(1, getConditionalProbability, components=components)
     return(ts)
 }
 
@@ -130,8 +136,8 @@ getDensityFunction <- function(f) {
     d <- function(x) {
         res <- 0
         for(i in 1:num_components) {
-            res <- res + f$Props[[i]]*dmvnorm(x, 
-                                              mean=f$Mean[[i]],
+            res <- res + f$Props[[i]]*dmvn(x, 
+                                              mu=f$Mean[[i]],
                                               sigma=f$Var[[i]])
         }
         return(res)
@@ -153,7 +159,9 @@ plotDensities <- function(density_list,
               yrange[2] + length(yrange)*0.2)
     xs <- seq(xrange[1], xrange[2], length.out=num_points)
     ys <- seq(yrange[1], yrange[2], length.out=num_points)
-    pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
+    if(!missing(output_prefix)) {
+        pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
+    }
     plot(dat, xlim=xrange, ylim=yrange, pch=19)
     for(density_object in density_list) {
         d <- density_object %>%
@@ -180,7 +188,9 @@ plotDensities <- function(density_list,
                 drawlabels=FALSE)
         color <- color + 1
     }
-    dev.off()
+    if(!missing(output_prefix)) {
+        dev.off()
+    }
 }
 
 # Helper function to check if t*log(t) is a valid number, and if not,
