@@ -2,7 +2,7 @@ library(data.table)
 library(dplyr)
 library(magrittr)
 library(mclust)
-library(mvtnorm)
+library(mvnfast)
 
 readData <- function(filename, change_names=TRUE) {
     dat <- fread(filename)
@@ -37,11 +37,7 @@ getModelParameters <- function(mod) {
                 Prop=props))
 }
 
-# Super slow
 getModelLikelihood <- function(dat, components) {
-    ell <- 0
-    K <- components %>% length
-    n <- nrow(dat)
     ell <- 0
     log_sum <- dat %>% 
         apply(1,
@@ -52,14 +48,14 @@ getModelLikelihood <- function(dat, components) {
                                     x, 
                                     mu=y$Mean[[1]],
                                     sigma=y$Var[[1]],
-                                    log=TRUE
                                 )
                              }
-                      ) %>%
-                  sum
+                            ) %>%
+                      sum
                   return(res)
                }
         ) %>%
+        log %>%
         sum 
     return(log_sum)
 }

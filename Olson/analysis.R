@@ -1,3 +1,5 @@
+source("cluster.R")
+
 runAnalysis <- function(working_dat,
                         model_names=NULL,
                         output_dir,

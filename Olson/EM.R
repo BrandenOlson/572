@@ -16,14 +16,26 @@ createComponents <- function(p_init,
     return(components)
 }
 
+generateRandomMeans <- function(K, dat) {
+    mu_lower <- apply(dat, 2, min)
+    mu_upper <- apply(dat, 2, max)
+    means <- replicate(K,
+                            mapply(function(x, y) { 
+                                       runif(1, min=x, max=y) 
+                                   },
+                                   mu_lower,
+                                   mu_upper),
+                       simplify=FALSE
+                      )
+    return(means)
+}
+
 initializeEM <- function(K,
                          dat,
-                         trial_count=10
+                         trial_count=1
                          ) {
     print("Initializing the parameters for EM...")
     liks <- {}
-    mu_lower <- apply(d1, 2, min)
-    mu_upper <- apply(d1, 2, max)
     d <- ncol(dat)
     components <- {}
     for(i in 1:trial_count) {
@@ -31,11 +43,8 @@ initializeEM <- function(K,
         p_init <- rep(1/K, K)
         mu_init <- rep(NA, K) %>% as.list
         Sigma_init <- {}
+        mu_init <- kMeans(K, dat)
         for(k in 1:K) {
-            mu_k <- mapply(function(x, y) { runif(1, min=x, max=y) },
-                           mu_lower,
-                           mu_upper)
-            mu_init[[k]] <- mu_k 
             Sigma_init[[k]] <- diag(rep(1, d))
         }
         components[[i]] <- createComponents(p_init,
@@ -89,11 +98,46 @@ runEM <- function(K,
         }
 
         likelihood <- getModelLikelihood(dat, components)
-        error <- abs(likelihood_prev - likelihood)/abs(likelihood_prev)
+        error <- (likelihood - likelihood_prev)/abs(likelihood_prev)
         components %>% plotDensities(dat=dat)
         iteration <- iteration + 1
     }
     return(components)
+}
+
+kMeans <- function(K, 
+                   dat,
+                   tol=1e-3
+                   ) {
+    means <- generateRandomMeans(K, dat)
+    theta_norm <- norm(means %>%
+                       unlist %>%
+                       as.matrix,
+                   "F")
+    error <- Inf
+    while(error > tol) {
+        theta_norm_prev <- theta_norm
+        rs <- dat %>% apply(1,
+                      function(x) {
+                          distances <- {}
+                          for(k in 1:K) {
+                              diff <- as.matrix(x - means[[k]])
+                               distances[k] <- norm( diff^2, "F")
+                          }   
+                          return(which.min(distances))
+                      }
+                )
+
+        for(k in 1:K) {
+            means[[k]] <- dat[rs == k, ] %>% apply(2, mean)
+        }
+        theta_norm <- means %>%
+            unlist %>%
+            as.matrix %>%
+            norm("F")
+        error <- abs(theta_norm - theta_norm_prev)/abs(theta_norm_prev)
+    }
+    return(means)
 }
 
 
@@ -106,6 +150,8 @@ Sigma_init <- list(diag(rep(1, 2)),
                    diag(rep(1, 2)),
                    diag(rep(1, 2)),
                    diag(rep(1, 2)))
+
+kmeans <- kMeans(K, d1)
 
 comp_init <- initializeEM(K,
                           d1)
