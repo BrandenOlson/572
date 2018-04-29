@@ -3,6 +3,7 @@ library(dplyr)
 library(magrittr)
 library(mclust)
 library(mvnfast)
+library(plyr)
 
 readData <- function(filename, change_names=TRUE) {
     dat <- fread(filename)
@@ -38,7 +39,6 @@ getModelParameters <- function(mod) {
 }
 
 getModelLikelihood <- function(dat, components) {
-    ell <- 0
     log_sum <- dat %>% 
         apply(1,
               function(x) {
@@ -47,10 +47,10 @@ getModelLikelihood <- function(dat, components) {
                                 y$Prop[[1]]*dmvn(
                                     x, 
                                     mu=y$Mean[[1]],
-                                    sigma=y$Var[[1]],
+                                    sigma=y$Var[[1]]
                                 )
                              }
-                            ) %>%
+                      ) %>%
                       sum
                   return(res)
                }
@@ -144,8 +144,11 @@ combineDensities <- function(f1, f2) {
 plotDensities <- function(density_list,
                           output_prefix,
                           dat,
-                          num_points=100
+                          zs,
+                          num_points=100,
+                          contour_levels=0.01
                           ) {
+    colors <- rainbow(length(density_list))
     color <- 2 # Skip black (1) since points are black 
     xrange <- range(dat[, 1])
     yrange <- range(dat[, 2])
@@ -158,7 +161,9 @@ plotDensities <- function(density_list,
     if(!missing(output_prefix)) {
         pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
     }
-    plot(dat, xlim=xrange, ylim=yrange, pch=19)
+    
+    color <- 1
+    plot(dat, xlim=xrange, ylim=yrange, col=colors[zs], pch=19)
     for(density_object in density_list) {
         d <- density_object %>%
             getDensityFunction
@@ -178,8 +183,8 @@ plotDensities <- function(density_list,
         }
 
         contour(x=xs, y=ys, z, 
-                col=color, 
-                levels=0.01, 
+                col=colors[color], 
+                levels=contour_levels,
                 add=TRUE,
                 drawlabels=FALSE)
         color <- color + 1

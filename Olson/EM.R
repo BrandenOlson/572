@@ -27,47 +27,52 @@ generateRandomMeans <- function(K, dat) {
                                    mu_upper),
                        simplify=FALSE
                       )
+    means <- dat %>%
+        sample_n(K) %>%
+        plyr::alply(1, as.numeric)
     return(means)
 }
 
 initializeEM <- function(K,
                          dat,
-                         trial_count=20
+                         trial_count=1
                          ) {
     print("Initializing the parameters for EM...")
     liks <- {}
     d <- ncol(dat)
     components <- {}
     for(i in 1:trial_count) {
-        p_init <- rep(1/K, K)
+        print(i)
         mu_init <- rep(NA, K) %>% as.list
-        Sigma_init <- {}
-        mu_init <- kMeans(K, dat)
-        for(k in 1:K) {
-            Sigma_init[[k]] <- diag(rep(0.5, d))
-        }
+        kmeans_fit <- kMeans(K, dat)
+        p_init <- kmeans_fit$ps
+        mu_init <- kmeans_fit$means
+        cov_init <- kmeans_fit$covariances
+
         components[[i]] <- createComponents(p_init,
                                             mu_init,
-                                            Sigma_init)
+                                            cov_init)
         liks[i] <- getModelLikelihood(dat,
                                   components[[i]])
     }
-    return(components[[which.max(liks)]])
+    component_best <- components[[which.max(liks)]]
+    plotDensities(component_best, dat=dat)
+    return(component_best)
 }
 
 runEM <- function(K, 
                   dat,
-                  tol=1e-1,
+                  tol=1e-5,
                   max_iterations=50
                   ) {
     print("Running the EM algorithm...")
-    dat <- dat %>% as.matrix
     components <- initializeEM(K, dat)
+    dat <- dat %>% as.matrix
 
     likelihood <- getModelLikelihood(dat, components)
     error <- Inf
     iteration <- 1
-    while(error > tol && iteration <= max_iterations) {
+    while((error > tol || iteration <= 3) && (iteration <= max_iterations)) {
         cat(error, likelihood, '\n')
         likelihood_prev <- likelihood
         tik <- getTs(dat, 
@@ -107,8 +112,14 @@ kMeans <- function(K,
                    dat,
                    tol=1e-1
                    ) {
-    means <- generateRandomMeans(K, dat)
     dat <- data.frame(dat)
+    means <- dat %>%
+        sample_n(K) %>%
+        plyr::alply(1, as.numeric)
+    covariances <- replicate(K,
+                             diag(1, ncol(dat)),
+                             simplify=F)
+    ps <- rep(1/K, K)
     theta_norm <- norm(means %>%
                        unlist %>%
                        as.matrix,
@@ -127,9 +138,16 @@ kMeans <- function(K,
                       }
                 )
 
+        hcs <- dat %>%
+            hc %>% 
+            hclass(K)
         for(k in 1:K) {
-            if(nrow(dat[rs==k,])) {
-                means[[k]] <- dat[rs == k, ] %>% apply(2, mean)
+            if(nrow(dat[hcs==k,])) {
+                dat_k <- dat[hcs == k, ]
+                means[[k]] <- dat_k %>% apply(2, mean)
+                covariances[[k]] <- cov(dat_k)
+                ps[k] <- nrow(dat_k)/nrow(dat)
+                print(ps[k])
             }
         }
 
@@ -139,12 +157,92 @@ kMeans <- function(K,
             norm("F")
         error <- abs(theta_norm - theta_norm_prev)/abs(theta_norm_prev)
     }
-    return(means)
+    return(list(ps=ps, means=means, covariances=covariances))
 }
 
+classLikSolo <- function(xi, mean, cov) {
+    if(!is.positive.definite(cov)) {
+        cov <- diag(0.5, length(xi))
+    }
+    dmvn(xi,
+         mean,
+         cov,
+         log=TRUE)
+}
 
+classLik <- function(dat, means, covs) {
+    liks <- dat %>% 
+        plyr::alply(1,
+                    as.numeric) %>%
+        mapply(classLikSolo,
+               .,
+               means,
+               covs
+               ) %>%
+        unname
+    return(liks)
+}
+
+getTotalLik <- function(class_liks) {
+    class_liks %>% sum
+}
+
+mbhc <- function(K,
+                 dat) {
+    n <- nrow(dat)
+    d <- ncol(dat)
+    zs <- 1:n
+    means <- dat %>%
+        plyr::alply(1, as.numeric)
+    covs <- replicate(n,
+                      diag(1, d),
+                      simplify=FALSE
+                      )
+    class_liks <- classLik(dat,
+                           means,
+                           covs)
+    argmax <- 0
+    for(K_curr in n:K) {
+        clusters <- zs %>% unique
+        means_current <- 0
+        cov_current <- 0
+        max_diff <- 0
+        for(ci in clusters) {
+            cat(ci, '\n')
+            for(cj in clusters) {
+                if(ci < cj) {
+                    dat_ij <- dat[zs %in% c(ci, cj), ]
+                    mu_ij <- dat_ij %>% apply(2, mean)
+                    cov_ij <- cov(dat_ij)
+                    lik_ij <- classLik(dat_ij, 
+                                       replicate(nrow(dat_ij), mu_ij, simplify=FALSE),
+                                       replicate(nrow(dat_ij), cov_ij, simplify=FALSE)
+                                       ) %>% sum
+                    lik_difference <- lik_ij - class_liks[ci] - class_liks[cj]
+                    if(lik_difference > max_diff) {
+                        argmax <- c(ci, cj)
+                        means_current <- mu_ij
+                        cov_current <- cov_ij
+                    }
+                } 
+            }
+        }
+        zs[zs == argmax[2]] <- argmax[1]
+        means[[argmax[1]]] <- means_current
+        covs[[argmax[1]]] <- cov_current
+    }
+
+    clusters <- zs %>% unique
+    means <- means[zs %>% unique]
+    covs <- covs[zs %>% unique]
+    return(list(means, covs))
+}
+
+# Try a model-based hierarchical clustering initialization
+
+if(FALSE) {
 K <- 6
-
-# theta_mle <- runEM(K=K, data=d1)
-
-# theta_mle %>% plotDensities(dat=d1)
+theta_init <- mbhc(K, dat=d1)
+theta_mle <- runEM(K=K, dat=d1)
+theta_mle %>% plotDensities(dat=d1)
+}
