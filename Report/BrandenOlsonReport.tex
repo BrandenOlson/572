@@ -197,9 +197,24 @@ In general, we consider clusters to be contiguous, densely-populated regions of 
 The problem of clustering can be quite challenging as the usual difficulties of modeling the underlying distribution are compounded by the absence of information about the nature of the clusters.
 Indeed, the field of clustering contains a broad and vast set of approaches based on various assumptions of the data-generating mechanism and cluster specifications.
 
-One such category, known as model-based clustering, assumes that the data points 
-$\bX_1, \dotsc, \bX_n$ were generated from a mixture model and can be assigned cluster labels based on their most likely mixture components.
-For continuous data, model-based clustering typically assumes that each point $\bX_i$ is generated from a multivariate Gaussian mixture model. 
+% Cluster analysis background
+Clustering methods can be based on heuristics or formal statistical models.
+Hierarchical clustering techniques either merge or split clusters at each stage \citep{Fraley98}.
+Agglomerative, or ``bottom-up'', clustering starts with a large number of clusters (often with each point comprising its own cluster) and merges the clusters based on some criterion.
+These criteria include neigherest-neighbor, farthest-neighbor, and sum of squares, or maximum likelihood rules \citep{Kaufman90, Murtagh84, Banfield93}.
+Divisive, or ``top-down'', clustering recursively divides the clusters starting from large groups. 
+Another class of clustering tools known as relocation methods start from an initial division and successively move points to other groups.
+In particular, the popular $k$-means relocation method moves points to reduce the intra-cluster sum of squares \citep{Hartigan78}. 
+
+% Model-based clustering
+
+% EM algorithms
+
+Another approach, known as model-based clustering, assumes that the data were generated from a mixture model of probability distributions and can be assigned cluster labels based on their most likely mixture components.
+The parameters of the underlying densities can be estimated using the expectation-maximization (EM) algorithm, viewing the ``true'' cluster memberships as the missing or complete data \citep{McLachlan88, Dempster77}. 
+
+
+\cite{Baudry10} focus on model-based paradigm, assuming multivariate Gaussian mixture component densities. 
 That is, given $K$ mixture components, we decompose the density of $\bx_i$ as
 \ba
 f(\bx_i | K, \btheta_K)
@@ -265,6 +280,62 @@ Furthermore, as in the BIC case, the ICL is restricted to Gaussian models of pos
 
 
 \section{Methods}
+\cite{Baudry10} seek to utilize the respective strengths of the BIC and ICL criteria.
+They propose a hierarchical clustering sequence which minimizes the overall entropy during each merge.
+In particular, at each iteration, the procedure identifies out of all possible cluster pairs, the two clusters which, when merged, yield the highest difference in entropy. 
+This can be formalized notationally as follows.
+Let $t_{ik}$ denote the conditional probability that data point $\bx_i$ belongs to cluster $k$.
+Then for clusters $t_{ik}$ and $t_{ik'}$, it is straightforward to show (see appendix B) that
+\ba
+t_{i, k\cup k'} = t_{ik} + t_{ik'}.
+\ea
+Thus, the corresponding entropy of $\bx_i$ with respect to the new cluster $k \cup k'$ is
+\ba
+t_{i, k\cup k'} = \left(t_{ik} + t_{ik'}\right) \log\left( t_{ik} + t_{ik'} \right)
+\ea
+which is distinct from the combined entropy of $\bx_i$ with respect to the separate clusters $k$ and $k'$,
+\ba
+t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'}.
+\ea
+This induces a difference in overall entropy when merging $k$ and $k'$, 
+\ba
+\Delta\text{Ent}( k, k') :=
+\sum_{i=1}^n t_{i,k\cup k'} \log t_{i, k \cup k'}
+- \sum_{i=1}^n \left\{ t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'} \right\}.
+\ea
+Thus, at each iteration of the algorithm, we merge clusters $(k, k') = \argmax_{j, \ell} \Delta\text{Ent}(j, \ell)$.
+
+The nature of the above merging process deserves some discussion.
+In the BIC and ICL approaches, the cluster definitions are bijections to the Gaussian mixture components. In other words, clusters must correspond to scaled Gaussian densities.
+\cite{Baudry10} transcend this restriction by allowing clusters to be Gaussian mixtures.
+This yields submixtures within the full Gaussian mixture.
+This allows flexibility in the cluster shapes, allowing them to "tighten" around points, increasing the separation between clusters, and decreasing the overall entropy.
+This will be illustrated in the examples below.
+
+The method of \cite{Baudry10} yields a sequence of clustering solutions for each value of $K \in \set{K_\text{min}, \dotsc, K_\text{max}}$.
+Given this sequence, which one should we accept as the ``best'' one for our problem?
+The authors suggest several different approaches for automatically selecting $K$, including:
+\begin{enumerate}
+\item
+choosing a $K$ substantially either using the scientific background of the data, or simply visualizing the clusters with the data;
+\item
+choosing $K = K_\text{ICL}$, since the ICL criterion chooses cluster numbers effectively;
+\item
+regressing the normalized change in entropy on $K$, and identifying an ``elbow'' to indicates the entropy has leveled out.
+\end{enumerate}
+Here, the normalized change in entropy is defined to be
+\ba
+\Delta\text{Ent}_\text{norm}(K)
+	:= \frac{ \text{Ent}(K + 1) - \text{Ent}(K) }{ \#\set{ \bx_i: \bx_i \in k \cup k' } } 
+\ea
+where $k\cup k'$ is the merged cluster from clusters $k$ and $k'$ as determined by the algorithm. 
+That is, we scale the difference in entropy by the number of observations involved in the merging process from the $(K+1)$-cluster solution to the $K$-cluster solution. 
+Thus, we can automatically infer $K$ by performing a piecewise linear regression $\Delta \text{Ent}_\text{norm}(K) \sim K$ and set $K$ to be the estimated breaking point, or ``elbow''.
+
+One issue that may arise is that the piecewise linear regression may identify multiple elbows, implying a hierarchical nature of clustering.
+There are still some ways to automatically choose $K$, such as always choosing the smallest such breaking point, or averaging over them.
+Nonetheless, a general method to automatically select $K$ appears difficult, and the modeler may need to resort to a subjective, context-dependent approach.
+
 
 \section{Results}
 
@@ -452,6 +523,9 @@ If $M_1 = \dotsc = M_m$, then
 \ba
 \Pr{M_\ell | \bx} & = \frac{f(\bx | M_\ell)}{ \sum_{r=1}^m f(\bx | M_r) }.
 \ea
+
+\section*{Appendix E: Derivation of BIC}
+
 
 \end{document}
 
