@@ -159,7 +159,7 @@ plotDensities <- function(density_list,
     xs <- seq(xrange[1], xrange[2], length.out=num_points)
     ys <- seq(yrange[1], yrange[2], length.out=num_points)
     if(!missing(output_prefix)) {
-        pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=6)
+        pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=10)
     }
     
     color <- 1
@@ -235,12 +235,23 @@ argmaxDelta <- function(ts, K) {
             }
         }
     }
-    return(argmax)
+    return(list(argmax=argmax,
+                delta_ent=max_delta
+           )
+    )
 }
 
-mergeClusters <- function(components, ts) {
+mergeClusters <- function(components, 
+                          ts,
+                          dat
+                          ) {
     K <- length(components)
-    argmax <- argmaxDelta(ts, K)
+    delta_ent_object <- argmaxDelta(ts, K)
+    argmax <- delta_ent_object$argmax
+    delta_ent <- delta_ent_object$delta_ent
+    zs <- getTs(dat=dat, components=components, K=k) %>%
+        getZs
+    num_merged <- dat[zs %in% argmax, ] %>% nrow
     new_components <- list()
     merged <- FALSE
     for(i in 1:K) {
@@ -258,21 +269,63 @@ mergeClusters <- function(components, ts) {
                                 list(components[[i]]))
         }
     }
-    return(new_components)
+    total_ent <- 
+    return(list(components=new_components,
+                delta_ent=delta_ent,
+                num_merged=num_merged
+                ))
 }
 
+# Get cluster sequence along with the changes in entropy for each K-value
 getClusterSequence <- function(dat,
-                               components) {
+                               components
+                               ) {
     cluster_list <- list(components)
+    delta_ents <- NA
+    num_merged <- NA
     K <- length(components)
-    while(K > 1) {
-        ts <- getTs(dat, components)
-        components <- mergeClusters(components, ts)
+    total_ents <- getTs(dat=dat,
+                        components=components,
+                        K=K) %>%
+        getEntropy
+    k <- K
+    while(k > 1) {
+        ts <- getTs(dat=dat, components=components, K=k)
+        merge_clusters_object <- mergeClusters(components, ts, dat=dat)
+        components <- merge_clusters_object$components
+        delta_ent <- merge_clusters_object$delta_ent
+        num_merged_k <- merge_clusters_object$num_merged
+
+        delta_ents <- c(delta_ents, delta_ent)
+        total_ent <- getTs(dat=dat,
+                           components=components,
+                           K=k) %>%
+            getEntropy
+        total_ents <- c(total_ents, total_ent)
+        num_merged <- c(num_merged, num_merged_k)
         cluster_list <- c(cluster_list,
                           list(components)
                           )
-        K <- K - 1
+        k <- k - 1
     }
-    return(cluster_list)
+
+    # Baudry plots the cum sums in reverse for some reason...
+    num_merged_cumsum <- num_merged[!is.na(num_merged)] %>%
+        cumsum %>%
+        append(0, .) %>%
+        rev
+
+
+    return(
+        list(cluster_list=cluster_list,
+            entropy=data.frame(K=K:1,
+                               DeltaEntropy=delta_ents,
+                               TotalEntropy=total_ents,
+                               NumMerged=num_merged,
+                               NumMergedCumSum=num_merged_cumsum,
+                               NormalizedDiff=delta_ents/num_merged
+                              )
+                )
+    )
 }
 

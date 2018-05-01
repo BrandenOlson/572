@@ -45,7 +45,8 @@ initializeEM <- function(K,
         print(i)
         mu_init <- rep(NA, K) %>% as.list
         kmeans_fit <- kMeans(K, dat)
-        p_init <- kmeans_fit$ps
+        p_init <- rep(1/K, K) 
+            # For some reason, using kmeans_fit$ps doesn't work as well
         mu_init <- kmeans_fit$means
         cov_init <- kmeans_fit$covariances
 
@@ -56,7 +57,8 @@ initializeEM <- function(K,
                                   components[[i]])
     }
     component_best <- components[[which.max(liks)]]
-    plotDensities(component_best, dat=dat)
+    zs <- getTs(dat, component_best, K) %>% getZs
+    plotDensities(component_best, dat=dat, zs=zs)
     return(component_best)
 }
 
@@ -102,7 +104,8 @@ runEM <- function(K,
 
         likelihood <- getModelLikelihood(dat, components)
         error <- (likelihood - likelihood_prev)/abs(likelihood_prev)
-        components %>% plotDensities(dat=dat)
+        zs <- tik %>% getZs
+        components %>% plotDensities(dat=dat, zs=zs)
         iteration <- iteration + 1
     }
     return(components)
@@ -242,7 +245,7 @@ mbhc <- function(K,
 
 if(FALSE) {
 K <- 6
-theta_init <- mbhc(K, dat=d1)
+# theta_init <- mbhc(K, dat=d1)
 theta_mle <- runEM(K=K, dat=d1)
 theta_mle %>% plotDensities(dat=d1)
 }
