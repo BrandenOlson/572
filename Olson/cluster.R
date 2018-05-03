@@ -184,7 +184,7 @@ plotDensities <- function(density_list,
     }
     
     color <- 1
-    plot(dat, xlim=xrange, ylim=yrange, col=colors[zs], pch=19)
+    plot(dat, xlim=xrange, ylim=yrange, col=colors[zs], pch=19, asp=1)
     for(density_object in density_list) {
         d <- density_object %>%
             getDensityFunction
@@ -302,8 +302,8 @@ getClusterSequence <- function(dat,
                                components
                                ) {
     cluster_list <- list(components)
-    delta_ents <- NA
-    num_merged <- NA
+    delta_ents <- {}
+    num_merged <- {}
     K <- length(components)
     total_ents <- getTs(dat=dat,
                         components=components,
@@ -329,6 +329,9 @@ getClusterSequence <- function(dat,
                           )
         k <- k - 1
     }
+
+    delta_ents <- c(delta_ents, NA)
+    num_merged <- c(num_merged, NA)
 
     # Baudry plots the cum sums in reverse for some reason...
     num_merged_cumsum <- num_merged[!is.na(num_merged)] %>%

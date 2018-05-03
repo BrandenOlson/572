@@ -12,6 +12,10 @@ runAnalysis <- function(working_dat,
                         contour_levels=0.01
                         ) {
 
+    pdf(paste0(output_dir, "unclustered.pdf"))
+    plot(working_dat, pch=19, asp=1)
+    dev.off()
+
     mc <- getModel(working_dat,
                    G=K_min:K_max,
                    model_names)
@@ -71,34 +75,48 @@ runAnalysis <- function(working_dat,
     )
     
     
-    pdf(paste0(output_dir, "entropy.pdf"), width=10, height=6)
+    pdf(paste0(output_dir, "entropy.pdf"))
     par(mfrow=c(2, 2))
     plotPiecewiseFitToData(entropy$DeltaEntropy,
-                           entropy$K)
+                           entropy$K,
+                           ylab="Difference in entropy",
+                           xlab="K")
     plotPiecewiseFitToData(entropy$TotalEntropy,
-                           entropy$K)
+                           entropy$K,
+                           xlab="K",
+                           ylab="Total entropy"
+                          )
     plotPiecewiseFitToData(entropy$DeltaEntropy,
-                           entropy$NumMergedCumSum)
+                           entropy$NumMergedCumSum,
+                           xlab="Cumulative count of merged observations",
+                           ylab="Difference in entropy")
     plotPiecewiseFitToData(entropy$NormalizedDiff,
-                           entropy$K)
+                           entropy$K,
+                           xlab="K",
+                           ylab="Normalized difference in entropy")
     dev.off()
 }
 
 plotPiecewiseFitToData <- function(
-                                   x_col,
                                    y_col,
-                                   breakpoint
+                                   x_col,
+                                   xlab,
+                                   ylab,
+                                   h=3
                                    ) {
-    bp <- breakpoints(y_col ~ x_col, h=3)
-    seg_fit <- lm(y_col ~ x_col*(x_col < bp) + x_col*(x_col >= bp))
-    plot(y_col ~ x_col, data=dat, pch=19)
-    lines(fitted(bp, breaks=1) ~ xcol, lty=2, col="red")
+    plot(y_col ~ x_col, pch=19, xlab=xlab, ylab=ylab)
+    if(FALSE) {
+        # Need to find a way to fit piecewise linear regression with few data points
+        bp <- breakpoints(y_col ~ x_col, h=h)
+        # seg_fit <- lm(y_col ~ x_col*(x_col < bp) + x_col*(x_col >= bp))
+        lines(fitted(bp, breaks=1) ~ xcol, lty=2, col="red")
+    }
 }
                                   
-
-unif_dat <- # rbind(cbind(runif(400, 0, 1), runif(200, 0, 1)),
-            #       rmvn(200, mu=c(1, 2), sigma=diag(1/5, 2))
-            #       )
+runAnalysis(unif_dat[, 1:2],
+            model_names="VII",
+            output_dir="Figures/unif/",
+            contour_levels=1/10)
 runAnalysis(d1,
             output_dir="Figures/d1/")
 runAnalysis(d2,
@@ -114,8 +132,7 @@ runAnalysis(d41,
 runAnalysis(d_square_circle,
             model_names="VII",
             output_dir="Figures/square_circle/",
-            contour_levels=1/10000)
-stop()
+            contour_levels=1/10)
 # Need to make a plot just for the cluster labels,
 # since it's difficult to plot 3D contours
 runAnalysis(d42,
