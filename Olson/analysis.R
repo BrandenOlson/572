@@ -32,6 +32,27 @@ runAnalysis <- function(working_dat,
         dir.create(output_dir)
     }
 
+    mc_ICL <- getModel(working_dat,
+                       G=K_min:K_max,
+                       model_names,
+                       criterion="ICL"
+                       )
+    mc_icl_params <- mc_ICL %>% getModelParameters
+    icl_densities <- mc_icl_params %>%
+        getDensities
+    K_ICL <- icl_densities %>% length
+    zs_icl <- getTs(dat=working_dat,
+                    components=icl_densities,
+                    K=K_ICL
+                    ) %>%
+        getZs
+    plotDensities(icl_densities,
+                  output_prefix=paste0(output_dir, "ICL"),
+                  dat=working_dat,
+                  zs=zs_icl,
+                  contour_levels=contour_levels
+                  )
+
     plot_names <- paste0(output_dir, "merged_", K_BIC:1)
     mapply(function(x, y) {
                zs <- getTs(dat=working_dat,

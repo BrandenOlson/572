@@ -19,11 +19,32 @@ readData <- function(filename, change_names=TRUE) {
 
 getModel <- function(dat,
                      G,
-                     model_names=NULL) {
-    mc_BIC <- mclustBIC(dat,
-                        G=G,
-                        modelNames=model_names)
-    mc <- Mclust(dat, x=mc_BIC)
+                     model_names=NULL,
+                     criterion="BIC"
+                     ) {
+    if(criterion == "BIC") {
+        mc_raw <- mclustBIC(dat,
+                            G=G,
+                            modelNames=model_names)
+        mc <- Mclust(dat, x=mc_raw)
+    } else if(criterion == "ICL") {
+        mc_raw <- mclustICL(dat,
+                            G=G,
+                            modelNames=model_names
+                            )
+
+        # Mclust tries REALLY hard to 
+        K <- mc_raw %>%
+            summary %>%
+            attributes %$%
+            names %>%
+            first %>%
+            strsplit(",") %>%
+            unlist %>%
+            last %>%
+            as.numeric
+        mc <- Mclust(dat, G=K, modelNames=model_names)
+    }
     return(mc)
 }
 
