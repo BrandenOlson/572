@@ -1,0 +1,761 @@
+\documentclass[mathserif,compress]{beamer}
+
+\mode<presentation>
+{
+  \usecolortheme{}
+  \definecolor{blue}{rgb}{0.8,0,0}
+\setbeamercolor{ separation line }{bg=black}
+  \setbeamercolor{frametitle}{bg=gray!20!white}
+}
+\newcommand\hmmax{0}
+\newcommand\bmmax{0}
+\usepackage{natbib, verbatim}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{mathpazo}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathptmx}
+\usepackage{anyfontsize}
+\usepackage{t1enc}
+\usepackage{appendix}
+\usepackage{array}
+\usepackage{bm}
+\usepackage{cancel}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{cite}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{empheq}
+\usepackage{enumerate}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{units}
+\usepackage{bigstrut}
+\usepackage{rotating}
+\usepackage{ mathrsfs }
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{algorithm, algorithmic}
+
+\DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
+
+\DeclareMathAlphabet{\mathsfit}{\encodingdefault}{\sfdefault}{m}{}
+\SetMathAlphabet{\mathsfit}{bold}{\encodingdefault}{\sfdefault}{bx}{}
+
+\newcommand{\tens}[1]{\bm{\mathsfit{#1}}}
+
+\usepackage{color}
+\lstset{language=R,basicstyle=\ttfamily,breaklines=true,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{magenta}\ttfamily,
+                showstringspaces=false,
+                }
+
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
+\newcommand*\mb{\mathbf}
+\newcommand*\reals{\mathbb{R}}
+\newcommand*\complex{\mathbb{C}}
+\newcommand*\naturals{\mathbb{N}}
+\newcommand*\nats{\naturals}
+\newcommand*\integers{\mathbb{Z}}
+\newcommand*\rationals{\mathbb{Q}}
+\newcommand*\irrationals{\mathbb{J}}
+\newcommand*\pd{\partial}
+\newcommand*\htab{\hspace{4 mm}}
+\newcommand*\vtab{\vspace{0.5 in}}
+\newcommand*\lsent{\mathcal{L}}
+\newcommand*\conj{\overline}
+\newcommand*\union{\cup}
+\newcommand*\intersect{\cap}
+\newcommand*\cl{\cancel}
+\newcommand*\ANS{\text{ANS}}
+\newcommand*\As{\text{As}}
+\newcommand*\then{\rightarrow}
+\newcommand*\elim{\text{E}}
+\newcommand*\intro{\text{I}}
+\newcommand*\absurd{\curlywedge}
+\newcommand*\NK{\vdash_{\text{NK}}}
+\newcommand*\derivation{\begin{tabular} { >{$}l<{$}  >{$}c<{$}  >{$}l<{$}  >{$}r<{$} }}
+\newcommand*\interp{\mathcal{I}}
+\newcommand*\ba{\[ \begin{aligned}}
+\newcommand*\ea{\end{aligned} \]}
+\newcommand*\C{\mathcal{C}}
+\newcommand*\D{\mathscr{D}}
+\newcommand*\e{\operatorname{e}}
+\newcommand*\df{=_{\text{def}}}
+\newcommand*\eps{\epsilon}
+\newcommand*\enum{\begin{enumerate}[label=(\alph*)]}
+\newcommand*\enumend{\end{enumerate}}
+\newcommand*\E[1]{\tens{E}\left[#1\right]}
+\newcommand*\Esub[2]{\tens{E}_{#1}\left[#2\right]}
+\newcommand*\Var[1]{\tens{Var}\left[#1\right]}
+\newcommand*\Cov[1]{\tens{Cov}\left[#1\right]}
+\newcommand*\iid{\overset{\text{iid}}{\sim}}
+\newcommand*\Exp[1][\lambda]{\text{Exp}(\text{rate}=#1)}
+\newcommand*\ind[1]{\mathbb{1}\left(#1\right)}
+\newcommand*\set[1]{\left\{#1\right\}}
+\newcommand*\estim[1]{\widehat{#1}}
+\newcommand*\der{\text{d}}
+\newcommand*\norm[1]{\left\|#1\right\|}
+\newcommand*\dist[2]{\;\text{dist}\left(#1, #2\right)}
+\newcommand*\interior{\text{int}\;}
+\newcommand*\exterior{\text{ext}\;}
+\newcommand*\boundary{\text{bd}\;}
+\newcommand*\lh{\overset{\text{L'H}}{=}}
+
+\renewcommand\Re{\operatorname{Re}}
+\renewcommand\Im{\operatorname{Im}}
+\DeclareMathOperator*{\argmin}{arg\;min}
+\DeclareMathOperator*{\argmax}{arg\;max}
+\renewcommand\;{\,}
+\renewcommand\epsilon{\varepsilon}
+\renewcommand\rho{\varrho}
+\renewcommand\phi{\varphi}
+\renewcommand\mod{\hspace{0.2em} \textbf{mod}\hspace{0.2em}}
+\renewcommand\Pr[1]{ \mathsf{Pr}\left(#1\right) }
+\def\ci{\perp\!\!\!\perp}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes,arrows}
+\usepackage{adjustbox}
+
+\tikzstyle{decision} = [diamond, draw, fill=blue!20, 
+    text width=4.5em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=6em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
+    minimum height=2em]
+
+\lstset{breaklines=true,
+        numbersep=5pt,
+        xleftmargin=.25in,
+        xrightmargin=.25in}
+
+\DeclareMathOperator{\sech}{sech}
+\DeclareMathOperator{\sgn}{sgn}
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{#1}}
+\makeatother
+
+\newenvironment{amatrix}[1]{%
+  \left(\begin{array}{@{}*{#1}{c}|c@{}}
+}{%
+  \end{array}\right)
+}
+
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+
+
+\newcommand{\real}{\ensuremath{\mathbb{R}}}
+\newcommand{\bA}{\mbox{\protect\boldmath $A$}}
+\newcommand{\bo}{\mbox{\protect\boldmath $o$}}
+\newcommand{\bu}{\mbox{\protect\boldmath $u$}}
+\newcommand{\by}{\mbox{\protect\boldmath $y$}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\bs}{\mbox{\protect\boldmath $s$}}
+\newcommand{\bS}{\mbox{\protect\boldmath $S$}}
+\newcommand{\bz}{\mathbf{z}}
+\newcommand{\bh}{\mbox{\protect\boldmath $h$}}
+\newcommand{\bF}{\mbox{\protect\boldmath $f$}}
+\newcommand{\bt}{\mbox{\protect\boldmath $t$}}
+\newcommand{\bc}{\mbox{\protect\boldmath $c$}}
+\newcommand{\bC}{\mbox{\protect\boldmath $C$}}
+\newcommand{\bp}{\mbox{\protect\boldmath $p$}}
+\newcommand{\bV}{\mbox{\protect\boldmath $V$}}
+\newcommand{\bX}{\mbox{\protect\boldmath $X$}}
+\newcommand{\bW}{\mbox{\protect\boldmath $W$}}
+\newcommand{\bZ}{\mbox{\protect\boldmath $Z$}}
+\newcommand{\bof}{\mbox{\protect\boldmath $f$}}
+\newcommand{\indicator}{{\ensuremath{\mathbb{I}}}}
+\newcommand{\M}{{\ensuremath{\rm M}}}
+\newcommand{\bbeta}{\boldsymbol{\beta}}
+\newcommand{\balpha}{\boldsymbol{\alpha}}
+\newcommand{\bgamma}{\boldsymbol{\gamma}}
+\newcommand{\bdelta}{\boldsymbol{\delta}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+\newcommand{\btheta}{\protect\boldsymbol{\theta}}
+\newcommand{\bzero}{\mathbf{0}}
+\newcommand{\hsp}{\hspace{0.2mm}}
+
+\footnotesize
+
+\beamertemplatenavigationsymbolsempty
+\setbeamertemplate{headline}{\vskip2pt}
+
+\title[]{Combining Mixture Components for Clustering}
+
+\author[]
+{Jean-Patrick Baudry, Adrian E. Raftery, Gilles Celeux, Kenneth Lo, and Rapha$\ddot{\text e}$l Gottardo\\$\;$ \\Presented by Branden Olson}
+
+\date[April, 2018]
+{April 12, 2018}
+
+\institute[]
+{
+}
+
+%Prepare a short presentation based on your chosen paper (10 slides at most). The main points you need to cover are:
+%
+%1. What is the scientific problem your paper is considering?
+%
+%2. What has been done to solve this problem before (aka literature review)?
+%
+%3. What new ideas do the authors propose?
+%
+%4. What are the interesting findings of the experiments on real data?
+
+\begin{document}
+
+\begin{frame}[noframenumbering]
+  \titlepage
+\end{frame}
+
+\begin{frame}\frametitle{Scientific Problem}
+\begin{itemize}
+\item[]
+Goal: \alert{cluster} data into groups
+\medskip
+\item[]
+Def. of \alert{groups}: "Contiguous, densely-populated regions of feature space, separated by contiguous, relatively empty regions"
+\medskip
+\item[]
+An example clustering of data in $\reals^2$:
+\smallskip
+\begin{center}
+\includegraphics[width=0.8\linewidth]{clustered.pdf}
+\end{center}
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Model-based clustering}
+\begin{itemize}
+\item[]
+Clustering: very broad field
+\bigskip
+\item[]
+Our focus: \alert{model-based clustering}
+\bigskip
+\item[]
+Assumption: data were generated from a mixture density (typically Gaussian), and groups correspond to mixture components
+\bigskip
+\item[]
+Why? Can estimate number of components and their parameters using the EM algorithm
+\bigskip
+\item[]
+Problem: What if the groups are non-Gaussian?
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Gaussian model-based clustering}
+\begin{itemize}
+\item[]
+Our setup: Assume $\bx_i \sim$ \alert{multivariate normal mixture} with $K$ components
+\ba
+f(\bx_i ; K, \theta_K) 
+	& = \sum_{k=1}^K p_k
+		\phi \left(\bx_i ; \mu_k, \Sigma_k\right),
+		\htab
+		1 \le i \le n
+\ea
+\begin{itemize}
+\item
+$\bp = (p_1, \dotsc, p_K)$: mixture proportions
+\medskip
+\item
+$\pmb\mu = (\mu_1, \dotsc, \mu_K)$: component means
+\medskip
+\item
+$\pmb\Sigma = (\Sigma_1, \dotsc, \Sigma_K)$: component covariances
+\end{itemize}
+\bigskip
+\item[]
+Given $K$, get MLE 
+$\estim\theta_K = (\estim{\mathbf p}, \estim{\pmb\mu}, \estim{\pmb\Sigma})$ using EM algorithm
+\bigskip
+\item[]
+Goals: \alert{Select $K$} among candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$,  \& \alert{infer cluster structure}
+\medskip
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Previous work: BIC}
+\begin{itemize}
+\item[]
+Dasgupta \& Raftery (1998): $\estim K = \argmin_K \text{BIC}(K)$, where
+\ba
+\text{BIC}(K)
+	= \underbrace{\log \; f(\bx; K, \estim\theta_K)}_\text{\alert{observed} log-likelihood} 
+	- \underbrace{\frac{\nu_K \log(n)}{2}}_\text{penalty}
+\ea
+\begin{itemize}
+\item
+$\bx = (\bx_1, \dotsc, \bx_n)$
+\medskip
+\item
+$\estim\theta_K = $ MLE for parameters (from EM)
+\medskip
+\item
+$\nu_K = \# $ of free parameters in $K$-component model
+\end{itemize}
+\bigskip
+Estimates \# mixture components well
+\bigskip
+\item[]
+Treats each component as a cluster which may be unreasonable
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Previous work: completed likelihood}
+\begin{itemize}
+\item[]
+Biernacki et al. (2000): consider the completed likelihood
+\ba
+f(\bx_i, \text{\color<1>[rgb]{0,0.7,0}{$\bz_i$}} ; K, \estim\theta_K)
+	& = \sum_{k=1}^K p_k \phi(\bx_i; \mu_k, \Sigma_k) 
+		\text{\color<1>[rgb]{0,0.7,0}{$z_{ik}$}},
+		\htab
+		1 \le i \le n
+\ea
+\begin{itemize}
+
+\item
+$z_{ik} = \ind{ \bx_i \text{ arises from component } k}$
+\medskip
+\item 
+$\bz_i = (z_{i1}, \dotsc, z_{iK})$ $\implies$ basis vector in $\reals^K$
+\end{itemize}
+\bigskip
+\item[]
+$\bz = (\bz_1, \dotsc, \bz_n)$ is unobserved
+\bigskip
+\item[]
+Can estimate each $\bz_i$ by finding the component most likely to have generated $\bx_i$ based on MLE
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Previous work: ICL criterion}
+\begin{itemize}
+\item[]
+So, instead choose $\estim K = \argmin_K \text{ICL}(K)$, where
+\ba
+\text{ICL}(K)
+	= \underbrace{\log \; f(\bx, \text{\color<1>[rgb]{0,0.7,0}{$\estim\bz$}}; K, \estim\theta_K)}_\text{\alert{"completed"} log-likelihood} - \frac{\nu_K \log(n)}{2}
+\ea
+\begin{itemize}
+\item
+$\estim\bz = (\estim\bz_1, \dotsc, \estim\bz_n)$
+\medskip
+\item
+$\estim\bz_i$ = the most likely cluster assignment of $\bx_i$ given $\estim\theta_K$
+\end{itemize}
+\bigskip
+\item[]
+Penalizes entropy of clustering, based on conditional probabilities that each component generated each data point
+\bigskip
+\item[]
+Estimates \# of clusters well, but can underestimate $K$
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{New ideas}
+\begin{itemize}
+\item[]
+Exploit respective strengths of BIC and ICL with the following procedure:
+\begin{enumerate}
+\medskip
+\item
+Start with BIC estimate of $K$
+\medskip
+\item
+At each stage, find the 2 clusters which, when merged, lead to the largest overall decrease in entropy
+\medskip
+\item
+Yields \alert{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
+\end{enumerate} 
+\bigskip
+\item[]
+Merging produces components that are Gaussian mixtures themselves
+\bigskip
+\item[]
+Thus, allows (\# components) $\ne$ (\# clusters)
+\bigskip
+\item[]
+Complexity: $\mathcal O \left( \left\{\text{rate for } \estim K_\text{BIC} \right\}+ n K_\text{max}^3 \right)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{How to choose $K$}
+\begin{itemize}
+\item[]
+Given our sequence of clusterings, how to choose $K$?
+\bigskip
+\item[]
+Baudry et al. give a few suggestions:
+\begin{enumerate}
+\medskip
+\item
+Subjectively, based on scientific background or examining plots
+\bigskip
+\item
+Choosing $K = \estim K_\text{ICL}$
+\medskip
+\item
+Regressing entropy-based quantities on $K$ to identify when it levels off
+\end{enumerate}
+\bigskip
+\item[]
+Issues: Small-sample size and/or multiple breakpoints
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration}
+\begin{itemize}
+\item[]
+Simulate 500 points from unit square in $\reals^2$ \& 200 points from a 
+$\mathcal N_2\left(\begin{pmatrix} 1 \\ 2 \end{pmatrix},
+	\begin{pmatrix} 1/5 & 0 \\ 0 & 1/5 \end{pmatrix}\right)$:
+\begin{center}
+\includegraphics[width=0.5\linewidth]{../Olson/Figures/unif/unclustered.pdf}
+\end{center}
+\item[]
+Assume spherical covariances, get $\estim\theta_K$  for each $K$, \& get $\estim K_\text{BIC}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: $K = \estim K_\text{BIC} = 5$}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_5_contour.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: Merged solution, $K = 4$}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_4_contour.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: Merged solution, $K = 3$}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_3_contour.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: Merged solution, $K = 2$}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_2_contour.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: Merged solution, $K = 1$}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_1_contour.pdf}
+\end{center}
+\end{frame}
+
+
+\begin{frame}\frametitle{Illustation: Entropy regression}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/entropy.pdf}
+\end{center}
+
+\end{frame}
+
+\begin{frame}\frametitle{Case study: Flow cytometry data (Brinkman et al. 2007)}
+\begin{itemize}
+\item[]
+2 datasets: 1 patient with graft-vs-host disease, 1 without
+\bigskip
+\item[]
+Each dataset has readings from $>$10,000 cells
+\bigskip
+\item[]
+Each cell reading has concentrations of 4 molecules: CD3, CD4, CD8, and CD8$\beta$
+\bigskip
+\item[]
+Previous study (Brinkman 2007): 
+\bigskip
+\begin{itemize}
+\item
+showed that susceptibility to disease strongly correlates with cells containing high levels of CD3, CD4, and CD8$\beta$
+
+\bigskip
+\item
+grouped cells into populations using physical and fluorescent properties to identify such cells
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Case study: Objectives}
+\begin{itemize}
+\item[]
+\alert{Our goal}: Cluster cells using the previous methods and compare to results of Brinkman
+\bigskip
+\begin{enumerate}
+\item
+Identify cell populations with high levels of CD3, CD4, and CD8$\beta$ in patient with disease
+\bigskip
+\item
+Show that the control patient does not have populations high in CD3, CD4, and CD8$\beta$
+\end{enumerate}
+\bigskip
+\item[]
+Assume Gaussian mixture model with general $\Sigma_k$
+\bigskip
+\item[]
+Cluster cells using BIC, ICL, \& ``combined''
+\bigskip
+\item[]
+\alert{Key detail}: A population is considered positive in a molecule if its estimated mean is $\ge 280$ units
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Results for individual with disease}
+\begin{itemize}
+\item[]
+Each plot shows CD4 levels on $x$-axis, CD8$\beta$ levels on $y$-axis
+\medskip
+\item[]
+\alert{NOTE}: Only CD3-positive clusters are shown
+\end{itemize}
+\begin{center}
+\begin{minipage}{0.3\linewidth}
+\begin{itemize}
+\item[]
+Previous study:
+\\
+\item[]
+6 CD3 positive populations
+\\
+\item[]
+3 CD3, CD4, and CD8$\beta$ positive populations
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{BIC_positive.png}
+\begin{center}
+BIC solution
+\\
+$K = 12$
+\\
+Ent = 4782
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{Combined_positive.png}
+\begin{center}
+Merged solution
+\\
+$K = 9$
+\\
+Ent = 1478
+\end{center}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Results for control individual}
+\begin{itemize}
+\item[]
+Each plot shows CD4 levels on $x$-axis, CD8$\beta$ levels on $y$-axis
+\medskip
+\item[]
+\alert{NOTE}: Only CD3-positive clusters are shown
+\end{itemize}
+\begin{center}
+\begin{minipage}{0.3\linewidth}
+\begin{itemize}
+\item[]
+Patient without disease should not have populations positive in CD3, CD4, and CD8$\beta$
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{BIC_control.png}
+\begin{center}
+BIC solution
+\\
+$K = 10$
+\\
+Ent $ = 3733$
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{Combined_control.png}
+\begin{center}
+Merged solution
+\\
+$K = 3$
+\\
+Ent $= 58$
+\end{center}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Discussion}
+\begin{itemize}
+\item[]
+BIC estimates \# components well 
+\bigskip
+\item[]
+ICL uses entropy identifies \# clusters well
+\bigskip
+\item[]
+Combine strengths by starting with $\estim K_\text{BIC}$ and merging clusters to minimize entropy
+\bigskip
+\begin{itemize}
+\item
+Key idea: Allow submixtures as components, so that $\left(\# \text{ mixture components}\right)$ 
+$\ne$ 
+$\left(\# \text{ clusters} \right)$
+\end{itemize}
+\bigskip
+\item[]
+Evidence of superior performance on real data 
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{References}
+(1)
+Biernacki, C., Celeux, G., and Govaert, G. (2000), ``Assessing a Mixture Model for Clustering With the Integrated
+Completed Likelihood,'' IEEE Transactions on Pattern Analysis and Machine Intelligence, 22, 719-725.
+\\ \bigskip
+(2) Brinkman, R. R. et al. (2007), ``High-Content Flow Cytometry and Temporal Data Analysis for Defining a Cellular Signature of
+Graft-versus-Host Disease,'' Biology of Blood and Marrow Transplantation, 13, 691-700.
+\\ \bigskip
+(3) Dasgupta, A., and Raftery, A. E. (1998), ``Detecting Features in Spatial Point Processes With Clutter via ModelBased
+Clustering,'' Journal of the American Statistical Association, 93, 294-302. 
+\end{frame}
+
+\begin{frame}\frametitle{Conditional probabilities and related quantities}
+\begin{itemize}
+\item[]
+Conditional probabilities:
+\ba
+t_{ik}(\estim\theta_K) & = \Pr{\bx_i \text{ arises from component $k$} \mid \estim\theta_K } \\
+	& = \frac{ p_k \phi_k(\bx_i | \mu_k, \Sigma_k)  }
+ 	{ \sum_{j=1}^K p_j \phi_j(\bx_i | \mu_j, \Sigma_j) }
+\ea
+with $\phi_k = $ $k$th Gaussian mixture density
+\medskip
+\item[]
+MAP estimates:
+\ba
+\estim z_{ik} := \ind{ \argmax_{1 \le j \le K} t_{ij}(\estim\theta_K) = k }
+\ea
+\item[]
+Shannon entropy:
+\ba
+\text{Entropy}(K) = - \sum_{i=1}^n \sum_{k=1}^K
+	t_{ik}(\estim\theta_K) \log t_{ik}(\estim\theta_K)
+\ea
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Description of flow cytometry and manual gating}
+\begin{itemize}
+\item
+Flow cytometry:
+A biophysical technology employed in cell counting, cell sorting, biomarker detection, etc.
+\medskip
+\item
+Fluorescence-activated cell sorting (FACS): special type of flow cytometry. Provides a method for sorting a heterogeneous mixture of biological cells into 2 or more containers, one cell at a time, based upon the specific light scattering and fluorescent characteristics of each cell
+\medskip
+\item
+Gating: a process or sorting cells according to physical and fluorescence characteristics
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: Comparing the $K = 2$ solutions}
+\begin{center}
+
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/merged_2_contour.pdf}
+\begin{center}
+Merged solution for $K = 2$
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/ICL_contour.pdf}
+\begin{center}
+ICL solution ($K = 2$)
+\end{center}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Full results for individual with disease}
+\alert{NOTE}: Only CD3-positive clusters are shown
+\begin{center}
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{ICL_positive.png}
+\begin{center}
+ICL solution ($K = 2$)
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{BIC_positive.png}
+\begin{center}
+BIC solution
+\\
+$K = 12$
+\\
+Ent = 4782
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{Combined_positive.png}
+\begin{center}
+Merged solution
+\\
+$K = 9$
+\\
+Ent = 1478
+\end{center}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
