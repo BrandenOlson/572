@@ -1,4 +1,4 @@
-\begin{thebibliography}{10}
+\begin{thebibliography}{14}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -7,7 +7,7 @@
 
 \bibitem[Banfield and Raftery(1993)]{Banfield93}
 J.D. Banfield and A.E. Raftery.
-\newblock Model-based gaussian and non-gaussian clustering.
+\newblock Model-based {G}aussian and non-{G}aussian clustering.
 \newblock \emph{Biometrics}, 49:\penalty0 803--821, 1993.
 
 \bibitem[Baudry et~al.(2010)Baudry, Raftery, Celeux, Lo, and
@@ -24,6 +24,17 @@ C.~Biernacki, G.~Celeux, and G.~Govaert.
 \newblock \emph{IEEE Transactions on Pattern Analysis and Machine
   Intelligence}, 22:\penalty0 719--725, 2000.
 
+\bibitem[Campbell et~al.(1997)Campbell, Fraley, Murtagh, and
+  Raftery]{Campbell97}
+J.G. Campbell, C.~Fraley, F.~Murtagh, and A.E. Raftery.
+\newblock Linear flaw detection in woven textiles using model-based clustering.
+\newblock \emph{Pattern Recognition Letters}, 18:\penalty0 1539--1548, 1997.
+
+\bibitem[Celeux and Govaert(1995)]{Celeux95}
+G.~Celeux and G.~Govaert.
+\newblock Gaussian parsimonious clustering models.
+\newblock \emph{Pattern Recognition}, 28:\penalty0 781--793, 1995.
+
 \bibitem[Dasgupta and Raftery(1998)]{Dasgupta98}
 A.~Dasgupta and A.E. Raftery.
 \newblock Detecting features in spatial point processes with clutter via
@@ -33,18 +44,18 @@ A.~Dasgupta and A.E. Raftery.
 
 \bibitem[Dempster et~al.(1977)Dempster, Laird, and Rubin]{Dempster77}
 A.P. Dempster, N.M. Laird, and D.B. Rubin.
-\newblock Maximum likelihood for incomplete data via the em algorithm.
+\newblock Maximum likelihood for incomplete data via the {EM} algorithm.
 \newblock \emph{Journal of the Royal Statistical Society, Series B},
   39:\penalty0 1--38, 1977.
 
 \bibitem[Fraley and Raftery(1998)]{Fraley98}
 C.~Fraley and A.E. Raftery.
-\newblock How many clusters? answers via model-based cluster analysis.
+\newblock How many clusters? {A}nswers via model-based cluster analysis.
 \newblock \emph{The Computer Journal}, 41:\penalty0 578--588, 1998.
 
 \bibitem[Hartigan and Wong(1978)]{Hartigan78}
 J.A. Hartigan and M.A. Wong.
-\newblock Algorithm as 136: a $k$-means clustering algorithm.
+\newblock Algorithm {AS} 136: a $k$-means clustering algorithm.
 \newblock \emph{Applied Statistics}, 28:\penalty0 100--108, 1978.
 
 \bibitem[Kaufman and Rousseeuw(1990)]{Kaufman90}
@@ -57,9 +68,21 @@ G.J. McLachlan and K.E. Basford.
 \newblock \emph{Mixture Models: Inference and Applications to Clustering}.
 \newblock Marcel Dekker, New York, 1988.
 
+\bibitem[Mukerjee et~al.(1998)Mukerjee, Feigelson, Babu, Murtagh, Fraley, and
+  Raftery]{Mukerjee98}
+S.~Mukerjee, E.D. Feigelson, G.J. Babu, F.~Murtagh, C.~Fraley, and A.E.
+  Raftery.
+\newblock Three types of gamma ray bursts.
+\newblock \emph{The Astrophysical Journal}, 508:\penalty0 314--327, 1998.
+
 \bibitem[Murtagh and Raftery(1984)]{Murtagh84}
 F.~Murtagh and A.E. Raftery.
 \newblock Fitting straight lines to point patterns.
 \newblock \emph{Pattern Recognition}, 17:\penalty0 479--483, 1984.
+
+\bibitem[Peel and McLachlan(2000)]{Peel00}
+D.~Peel and G.J. McLachlan.
+\newblock Robust mixture modeling using the $t$ distribution.
+\newblock \emph{Statistical Computing}, pages 339--348, 2000.
 
 \end{thebibliography}

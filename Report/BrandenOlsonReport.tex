@@ -182,9 +182,9 @@
 
 
 \begin{abstract}
-Model-based clustering assumes an underlying Gaussian mixture model, but often the number of mixture components is unknown. 
-The BIC criterion, commonly used in model selection, excels at inferring the number of components, but frequently overestimates the number of clusters. 
-An extension known as the ICL criterion, which penalizes model entropy, assuages this to yield a more accurate cluster count, although falls flat for non-Gaussian cluster distributions. 
+Model-based clustering typically assumes an underlying Gaussian mixture model, but often the number of mixture components is unknown. 
+The familiar Bayesian information criterion, which excels at inferring the number of components, frequently overestimates the number of clusters. 
+An extension known as the integrated complete likelihood criterion, which penalizes model entropy, assuages this to yield a more accurate cluster count, although falls flat for non-Gaussian cluster distributions. 
 \citet{Baudry10} propose a method with combines the strengths of the two approaches, yielding a sequence of clusterings starting from the BIC solution, and iteratively merging clusters to minimize the resultant entropy.
 This method is applied to simulated and real data, demonstrating superior performance in each case.
 \end{abstract}
@@ -192,13 +192,13 @@ This method is applied to simulated and real data, demonstrating superior perfor
 \section{Introduction}
 
 Many situations arise in which collected data points must be clustered into similar subgroups. 
-For example, we might wish to cluster DNA sequences from a number of species into phylogenetic families, or categorize X-ray data readings by the galaxies from which the waves originated.
+For example, we might wish to cluster DNA sequences from a population into phylogenetic families, or categorize X-ray data readings by the galaxies from which the waves originated.
 In general, we consider clusters to be contiguous, densely-populated regions of a feature space, separated by contiguous, relatively empty regions.
 The problem of clustering can be quite challenging as the usual difficulties of modeling the underlying distribution are compounded by the absence of information about the nature of the clusters.
 Indeed, the field of clustering contains a broad and vast set of approaches based on various assumptions of the data-generating mechanism and cluster specifications.
 
 % Cluster analysis background
-Clustering methods can be based on heuristics or formal statistical models.
+Clustering methods are motivated by heuristics, formal statistical models, or a combination thereof.
 Hierarchical clustering techniques either merge or split clusters at each stage \citep{Fraley98}.
 Agglomerative, or ``bottom-up'', clustering starts with a large number of clusters (often with each point comprising its own cluster) and merges the clusters based on some criterion.
 These criteria include neigherest-neighbor, farthest-neighbor, and sum of squares, or maximum likelihood rules \citep{Kaufman90, Murtagh84, Banfield93}.
@@ -210,17 +210,22 @@ In particular, the popular $k$-means relocation method moves points to reduce th
 
 % EM algorithms
 
-Another approach, known as model-based clustering, assumes that the data were generated from a mixture model of probability distributions and can be assigned cluster labels based on their most likely mixture components.
+Another approach known as model-based clustering assumes that the data were generated from a mixture model of probability distributions and can be assigned cluster labels based on their most likely mixture components.
+Modelers commonly choose Gaussian component densities, often with success \citep{Murtagh84, Banfield93, Dasgupta98, Campbell97, Celeux95, Mukerjee98}.
+However, other distributions may better suit the nature of the data, making the choice of density context-dependent.
+For example, the $t$-density is appropriate in the presence of outliers which heavily influence cluster definitions \citep{Peel00}.
 The parameters of the underlying densities can be estimated using the expectation-maximization (EM) algorithm, viewing the ``true'' cluster memberships as the missing or complete data \citep{McLachlan88, Dempster77}. 
 
 
-\cite{Baudry10} focus on model-based paradigm, assuming multivariate Gaussian mixture component densities. 
+\cite{Baudry10} focus on the model-based paradigm, assuming multivariate Gaussian mixture component densities. 
 That is, given $K$ mixture components, we decompose the density of $\bx_i$ as
 \ba
 f(\bx_i | K, \btheta_K)
 	& = \sum_{i=k}^K p_k \phi \left(\bx_i ; \mu_k, \Sigma_k \right).
 \ea
 Here, $p_k, k = 1, \dotsc, K$ are the mixture proportions, or the marginal probabilities for each component to generate a new data point a priori, so that $p_k \ge 0 \; \forall k$ and $\sum_{k=1}^K p_k = 1$; $\phi(\cdot; \mu_k, \Sigma_k)$ is the $d$-variate Gaussian density with mean $\mu_k$ and covariance matrix $\Sigma_k$; and $\btheta_K = (\bp, \bmu, \bSigma) = (p_1, \dotsc, p_{K - 1}, \mu_1, \dotsc, \mu_k, \Sigma_1, \dotsc, \Sigma_K)$.
+The choice of covariance is flexible, usually taken to be either spherical ($\Sigma_k = \sigma^2 I_d$), diagonal ($\Sigma_k = \text{diag}(\sigma_{k,1}, \dotsc, \sigma_{k,d})$), or general (unstructured).
+Unsurprisingly, the choice of covariance induces a trade-off between accuracy and tractability, with the more general covariance structures allowing for potentially better model fits, but requiring significantly more parameters to estimate.
 
 It's useful to frame the problem as observing incomplete or censored data from a ``complete'' experiment where the components that generate each data point are known. Notationally, each "complete" data point is a pair $(\bx_i, \bz_i)$, where 
 $\bz_i \in \reals^K$ define the cluster memberships, such that $z_{ik} = \ind{\bx_i \text{ was generated from component $k$}}$.  
@@ -251,8 +256,8 @@ The BIC criterion can be viewed as an approximation to the integrated likelihood
 \ea
 where $\pi(\cdot)$ is a prior distribution over the parameter space $\bTheta_K$.
 Under certain regularity conditions, the BIC can be shown to generally estimate the number of components well.
-However, a drawback of this approach is that it implicitly assumes that each mixture component corresponds to its own cluster which is not always desriable.
-In other words, some clusters would be better estimated as mixtures of Gaussians themselves, which is unattainable with this approach. 
+However, a drawback of this approach is that it implicitly assumes that each mixture component corresponds to its own cluster which is not always desirable.
+In other words, some clusters may be better estimated as mixtures of Gaussians themselves, which is unattainable with this approach. 
 
 \citet{Biernacki00} modify this approach by introducing the ICL criterion, namely,
 \ba
@@ -280,64 +285,66 @@ Furthermore, as in the BIC case, the ICL is restricted to Gaussian models of pos
 
 
 \section{Methods}
-\cite{Baudry10} seek to utilize the respective strengths of the BIC and ICL criteria.
-They propose a hierarchical clustering sequence which minimizes the overall entropy during each merge.
-In particular, at each iteration, the procedure identifies out of all possible cluster pairs, the two clusters which, when merged, yield the highest difference in entropy. 
-This can be formalized notationally as follows.
-Let $t_{ik}$ denote the conditional probability that data point $\bx_i$ belongs to cluster $k$.
-Then for clusters $t_{ik}$ and $t_{ik'}$, it is straightforward to show (see appendix B) that
+To utilize the respective strengths of the BIC and ICL criteria, \cite{Baudry10}  propose a hierarchical clustering sequence that minimizes the overall entropy during each merge.
+In particular, at each iteration the algorithm determines the pair of clusters which, when merged, yields the largest decrease in entropy.
+They suggest starting the algorithm with $K \gets \estim K_\text{BIC}$, the value of $K$ selected by the BIC criterion.
+
+The algorithm can be formalized notationally as follows.
+For a given $K$, let $t_{ik} = t_{ik}(\estim\theta_K)$ denote the conditional probability that data point $\bx_i$ belongs to cluster $k$.
+Then for any pair of clusters $k$ and $k'$, it is immediate (see appendix B) that
 \ba
 t_{i, k\cup k'} = t_{ik} + t_{ik'}.
 \ea
-Thus, the corresponding entropy of $\bx_i$ with respect to the new cluster $k \cup k'$ is
+with the remaining $t_{ij}, j \not\in \set{k, k'}$, unchanged.
+Thus, the corresponding entropy of an individual point $\bx_i$ with respect to the new, merged cluster $k \cup k'$ is
 \ba
 t_{i, k\cup k'} = \left(t_{ik} + t_{ik'}\right) \log\left( t_{ik} + t_{ik'} \right)
 \ea
-which is distinct from the combined entropy of $\bx_i$ with respect to the separate clusters $k$ and $k'$,
+This is distinct from the entropy of $\bx_i$ with respect to the separate clusters $k$ and $k'$,
 \ba
 t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'}.
 \ea
-This induces a difference in overall entropy when merging $k$ and $k'$, 
+This induces a difference in overall entropy when merging $k$ and $k'$, yielding
 \ba
 \Delta\text{Ent}( k, k') :=
 \sum_{i=1}^n t_{i,k\cup k'} \log t_{i, k \cup k'}
 - \sum_{i=1}^n \left\{ t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'} \right\}.
 \ea
-Thus, at each iteration of the algorithm, we merge clusters $(k, k') = \argmax_{j, \ell} \Delta\text{Ent}(j, \ell)$.
+Thus, at each iteration, the algorithm merges clusters $(k, k') = \argmax_{j, \ell} \Delta\text{Ent}(j, \ell)$, reducing the number of clusters to $K - 1$ and giving rise to new estimates of $t_{ik}, 1 \le k \le K - 1$. 
 
-The nature of the above merging process deserves some discussion.
-In the BIC and ICL approaches, the cluster definitions are bijections to the Gaussian mixture components. In other words, clusters must correspond to scaled Gaussian densities.
-\cite{Baudry10} transcend this restriction by allowing clusters to be Gaussian mixtures.
-This yields submixtures within the full Gaussian mixture.
-This allows flexibility in the cluster shapes, allowing them to "tighten" around points, increasing the separation between clusters, and decreasing the overall entropy.
-This will be illustrated in the examples below.
+In the BIC and ICL approaches, clusters exactly correspond to Gaussian mixture components.
+\cite{Baudry10} transcend this restriction by allowing clusters to be Gaussian mixtures to better approximate non-Gaussian cluster shapes.
+In other words, cluster definitions are allowed to be sub-mixtures within the full Gaussian mixture.
+This should in principle increase the separation between clusters, and hence decrease the overall entropy.
+The authors demonstrate superior performance empirically through various simulations, showing that their method leads to fewer point misclassifications and notably lower entropy from both the BIC and ICL solutions.
 
-The method of \cite{Baudry10} yields a sequence of clustering solutions for each value of $K \in \set{K_\text{min}, \dotsc, K_\text{max}}$.
-Given this sequence, which one should we accept as the ``best'' one for our problem?
-The authors suggest several different approaches for automatically selecting $K$, including:
+The method of \cite{Baudry10} yields a sequence of clustering solutions for each value of $K \in \set{K_\text{min}, \dotsc, \estim K_\text{BIC}}$.
+Given this sequence, the modeler may wish to choose the ``best'' clustering for the problem at hand.
+The authors suggest several approaches for automatically selecting $K$, including:
 \begin{enumerate}
 \item
 choosing a $K$ substantially either using the scientific background of the data, or simply visualizing the clusters with the data;
 \item
-choosing $K = K_\text{ICL}$, since the ICL criterion chooses cluster numbers effectively;
+choosing $K = K_\text{ICL}$, since the ICL criterion tends to choose the number of clusters effectively;
 \item
 regressing the normalized change in entropy on $K$, and identifying an ``elbow'' to indicates the entropy has leveled out.
 \end{enumerate}
 Here, the normalized change in entropy is defined to be
 \ba
 \Delta\text{Ent}_\text{norm}(K)
-	:= \frac{ \text{Ent}(K + 1) - \text{Ent}(K) }{ \#\set{ \bx_i: \bx_i \in k \cup k' } } 
+	:= \frac{ \text{Ent}(K + 1) - \text{Ent}(K) }{ \text{card}\left(k \cup k'\right) } 
 \ea
-where $k\cup k'$ is the merged cluster from clusters $k$ and $k'$ as determined by the algorithm. 
-That is, we scale the difference in entropy by the number of observations involved in the merging process from the $(K+1)$-cluster solution to the $K$-cluster solution. 
-Thus, we can automatically infer $K$ by performing a piecewise linear regression $\Delta \text{Ent}_\text{norm}(K) \sim K$ and set $K$ to be the estimated breaking point, or ``elbow''.
-
+where $k\cup k'$ is the newly merged cluster from previously separate clusters $k$ and $k'$.
+That is, we scale the difference in entropy by the number of observations involved in the merging process from the $(K+1)$-cluster solution to the $K$-cluster solution.
+Thus, we can automatically infer $K$ by performing a piecewise linear regression $\Delta \text{Ent}_\text{norm}(K) \sim K$ and set $K$ to be the estimated breaking point, or elbow.
+A cluster merge involving a large number of observations will lead to a larger difference in entropy; normalizing the entropy difference as above attempts to alleviate this bias so that a merge's effectiveness relies only on the corresponding increase in separation.
 One issue that may arise is that the piecewise linear regression may identify multiple elbows, implying a hierarchical nature of clustering.
-There are still some ways to automatically choose $K$, such as always choosing the smallest such breaking point, or averaging over them.
-Nonetheless, a general method to automatically select $K$ appears difficult, and the modeler may need to resort to a subjective, context-dependent approach.
-
+One can automatically choose $K$ in this case, such as always choosing the smallest such breaking point.
+Nonetheless, a general method to automatically select $K$ appears difficult, and may depend on the context and subjective qualities of the different clusterings.
 
 \section{Results}
+So... the mclust package for $K = 6$ using general covariances gives a different result than the authors get.
+Given that mclust is 
 
 \section{Discussion}
 
