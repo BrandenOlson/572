@@ -4,6 +4,7 @@ library(magrittr)
 library(mclust)
 library(mvnfast)
 library(plyr)
+library(scatterplot3d)
 
 readData <- function(filename, change_names=TRUE) {
     dat <- fread(filename)
@@ -184,7 +185,8 @@ plotDensities <- function(density_list,
     }
     
     color <- 1
-    plot(dat, xlim=xrange, ylim=yrange, col=colors[zs], pch=19, asp=1)
+    plot(dat, xlim=xrange, ylim=yrange, col=colors[zs], pch=19, asp=1,
+         cex.axis=2, cex.lab=3)
     for(density_object in density_list) {
         d <- density_object %>%
             getDensityFunction
@@ -353,3 +355,54 @@ getClusterSequence <- function(dat,
     )
 }
 
+# Basically specialized for the "3D uniform cross" example
+plotDensities3D <- function(dat, prefix, zs) {
+    pdf(paste0(prefix, "_scatter.pdf"))
+    scatterplot3d(dat, pch=19, asp=1, color=zs)
+    dev.off()
+
+    pdf(paste0(prefix, "_top_2d.pdf"))
+    plot(dat[, c(1, 2)], pch=19, asp=1, ylim=c(1, 0), col=zs)
+    dev.off()
+}
+
+getComponentMean <- function(component) {
+    mean <- mapply(function(x, y) { x*y },
+                   component$Prop,
+                   component$Mean
+                   ) %>%
+        c
+    mean <- mean/sum(component$Prop %>% unlist)
+    return(mean)
+}
+
+isCD3Positive <- function(component,
+                          threshold=280
+                          ) {
+    component_mean <- getComponentMean(component)
+    CD3_index <- 3
+    is_cd3_pos <- component_mean[CD3_index] > threshold
+    return(is_cd3_pos)
+}
+
+plotCD3Clusters <- function(dat,
+                            components,
+                            zs,
+                            prefix
+                            ) {
+    cd3_pos <- components %>%
+        sapply(isCD3Positive) %>%
+        which
+
+    if(length(cd3_pos) > 0) {
+        cd3_pos_dat <- dat[zs %in% cd3_pos, ]
+        cd3_zs <- zs[zs %in% cd3_pos]
+        pdf(paste0(prefix, "_CD3_CD8beta.pdf"))
+        plot(CD8beta ~ CD4, 
+             data=cd3_pos_dat, 
+             col=cd3_zs %>% as.factor,
+             pch=cd3_zs, 
+             asp=1)
+        dev.off()
+    }
+}
