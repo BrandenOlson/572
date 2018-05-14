@@ -6,6 +6,7 @@
   \definecolor{blue}{rgb}{0.8,0,0}
 \setbeamercolor{ separation line }{bg=black}
   \setbeamercolor{frametitle}{bg=gray!20!white}
+  \setbeamertemplate{footline}[frame number]
 }
 \newcommand\hmmax{0}
 \newcommand\bmmax{0}
@@ -225,10 +226,10 @@
 \begin{frame}\frametitle{Scientific Problem}
 \begin{itemize}
 \item[]
-Goal: \alert{cluster} data into groups
+\alert{Goal:} cluster data into groups
 \medskip
 \item[]
-Def. of \alert{groups}: "Contiguous, densely-populated regions of feature space, separated by contiguous, relatively empty regions"
+\alert{Def'n. of groups}: "Contiguous, densely-populated regions of feature space, separated by contiguous, relatively empty regions"
 \medskip
 \item[]
 An example clustering of data in $\reals^2$:
@@ -242,26 +243,26 @@ An example clustering of data in $\reals^2$:
 \begin{frame}\frametitle{Model-based clustering}
 \begin{itemize}
 \item[]
-Clustering: very broad field
+\alert{Clustering:} very broad field
 \bigskip
 \item[]
-Our focus: \alert{model-based clustering}
+\alert{Our focus:} \emph{model-based clustering}
 \bigskip
 \item[]
-Assumption: data were generated from a mixture density (typically Gaussian), and groups correspond to mixture components
+\alert{Assumption:} data sampled from mixture density (e.g. Gaussian), and groups correspond to mixture components
 \bigskip
 \item[]
-Why? Can estimate number of components and their parameters using the EM algorithm
+\alert{Why?} Can estimate number of components and their parameters using expectation-maximization (EM) algorithm
 \bigskip
 \item[]
-Problem: What if the groups are non-Gaussian?
+\alert{Problem:} What if the groups are non-Gaussian?
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Gaussian model-based clustering}
 \begin{itemize}
 \item[]
-Our setup: Assume $\bx_i \sim$ \alert{multivariate normal mixture} with $K$ components
+\alert{Our setup:} Assume $\bx_i \sim$ \emph{multivariate normal mixture} with $K$ components
 \ba
 f(\bx_i ; K, \theta_K) 
 	& = \sum_{k=1}^K p_k
@@ -285,7 +286,7 @@ Given $K$, get MLE
 $\estim\theta_K = (\estim{\mathbf p}, \estim{\pmb\mu}, \estim{\pmb\Sigma})$ using EM algorithm
 \bigskip
 \item[]
-Goals: \alert{Select $K$} among candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$,  \& \alert{infer cluster structure}
+\alert{Goals:} \emph{Select $K$} among candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$,  \& \emph{infer cluster structure}
 \medskip
 \end{itemize}
 \end{frame}
@@ -301,7 +302,7 @@ Dasgupta \& Raftery (1998): $\estim K = \argmin_K \text{BIC}(K)$, where
 \ea
 \begin{itemize}
 \item
-$\bx = (\bx_1, \dotsc, \bx_n)$
+$\bx = (\bx_1, \dotsc, \bx_n)$: data
 \medskip
 \item
 $\estim\theta_K = $ MLE for parameters (from EM)
@@ -313,7 +314,32 @@ $\nu_K = \# $ of free parameters in $K$-component model
 Estimates \# mixture components well
 \bigskip
 \item[]
-Treats each component as a cluster which may be unreasonable
+Treats each component as its own cluster which may be unreasonable
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration}
+\begin{itemize}
+\item[]
+Simulate 500 points from unit square in $\reals^2$ \& 200 points from a 
+$\mathcal N_2\left(\begin{pmatrix} 1 \\ 2 \end{pmatrix},
+	\begin{pmatrix} 1/5 & 0 \\ 0 & 1/5 \end{pmatrix}\right)$:
+\begin{center}
+\includegraphics[width=0.5\linewidth]{../Olson/Figures/unif/unclustered.pdf}
+\end{center}
+\item[]
+Assume spherical covariances, get $\estim\theta_K$  for each $K$, \& get $\estim K_\text{BIC}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Illustration: $K = \estim K_\text{BIC} = 5$}
+Clustered, labelled data \& contours of estimated densities:
+\begin{center}
+\includegraphics[width=0.55\linewidth]{../Olson/Figures/unif/merged_5_contour.pdf}
+\end{center}
+\begin{itemize}
+\item
+BIC estimates 5 components, but there are only 2 groups/clusters
 \end{itemize}
 \end{frame}
 
@@ -338,10 +364,7 @@ $\bz_i = (z_{i1}, \dotsc, z_{iK})$ $\implies$ basis vector in $\reals^K$
 \end{itemize}
 \bigskip
 \item[]
-$\bz = (\bz_1, \dotsc, \bz_n)$ is unobserved
-\bigskip
-\item[]
-Can estimate each $\bz_i$ by finding the component most likely to have generated $\bx_i$ based on MLE
+The $\bz_i$ are unobserved, but we can estimate them!
 \end{itemize}
 \end{frame}
 
@@ -362,7 +385,7 @@ $\estim\bz_i$ = the most likely cluster assignment of $\bx_i$ given $\estim\thet
 \end{itemize}
 \bigskip
 \item[]
-Penalizes entropy of clustering, based on conditional probabilities that each component generated each data point
+Penalizes entropy of clustering
 \bigskip
 \item[]
 Estimates \# of clusters well, but can underestimate $K$
@@ -377,13 +400,13 @@ Exploit respective strengths of BIC and ICL with the following procedure:
 \begin{enumerate}
 \medskip
 \item
-Start with BIC estimate of $K$
+Start with BIC estimate of $K$ from initial set $\set{K_\text{min}, \dotsc, K_\text{max}}$
 \medskip
 \item
 At each stage, find the 2 clusters which, when merged, lead to the largest overall decrease in entropy
 \medskip
 \item
-Yields \alert{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
+Yields \emph{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
 \end{enumerate} 
 \bigskip
 \item[]
@@ -411,55 +434,64 @@ Subjectively, based on scientific background or examining plots
 \bigskip
 \item
 Choosing $K = \estim K_\text{ICL}$
-\medskip
+\bigskip
 \item
 Regressing entropy-based quantities on $K$ to identify when it levels off
 \end{enumerate}
 \bigskip
 \item[]
-Issues: Small-sample size and/or multiple breakpoints
+Issues: Small-sample size, multiple change points/elbows
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration}
+\begin{frame}\frametitle{Back to illustration}
 \begin{itemize}
-\item[]
-Simulate 500 points from unit square in $\reals^2$ \& 200 points from a 
-$\mathcal N_2\left(\begin{pmatrix} 1 \\ 2 \end{pmatrix},
-	\begin{pmatrix} 1/5 & 0 \\ 0 & 1/5 \end{pmatrix}\right)$:
+\item
+Recall our simulation study and BIC solution:
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/unclustered.pdf}
 \begin{center}
-\includegraphics[width=0.5\linewidth]{../Olson/Figures/unif/unclustered.pdf}
+Raw, unclustered data
 \end{center}
-\item[]
-Assume spherical covariances, get $\estim\theta_K$  for each $K$, \& get $\estim K_\text{BIC}$
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/merged_5_contour.pdf}
+\begin{center}
+BIC solution ($K = 5$)
+\end{center}
+\end{minipage}
+\bigskip
+\item
+How does our merging technique fare?
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration: $K = \estim K_\text{BIC} = 5$}
+\begin{frame}\frametitle{Merged solution, $K = \estim K_\text{BIC} = 5$}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_5_contour.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration: Merged solution, $K = 4$}
+\begin{frame}\frametitle{Merged solution, $K = 4$}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_4_contour.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration: Merged solution, $K = 3$}
+\begin{frame}\frametitle{Merged solution, $K = 3$}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_3_contour.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration: Merged solution, $K = 2$}
+\begin{frame}\frametitle{Merged solution, $K = 2$}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_2_contour.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration: Merged solution, $K = 1$}
+\begin{frame}\frametitle{Merged solution, $K = 1$}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/merged_1_contour.pdf}
 \end{center}
@@ -468,143 +500,140 @@ Assume spherical covariances, get $\estim\theta_K$  for each $K$, \& get $\estim
 
 \begin{frame}\frametitle{Illustation: Entropy regression}
 \begin{center}
-\includegraphics[width=0.7\linewidth]{../Olson/Figures/unif/entropy.pdf}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/entropy_shortened.pdf}
 \end{center}
+\begin{itemize}
+\item
+Both plots indicate $K = 2$ as a reasonable change point
+\end{itemize}
 
 \end{frame}
 
-\begin{frame}\frametitle{Case study: Flow cytometry data (Brinkman et al. 2007)}
+\begin{frame}\frametitle{Application: Graft-vs-host disease}
 \begin{itemize}
 \item[]
-2 datasets: 1 patient with graft-vs-host disease, 1 without
+\alert{Graft-vs-host disease:} Tissue attacks the host after transplant
 \bigskip
 \item[]
-Each dataset has readings from $>$10,000 cells
+\alert{Question:} Can we screen patients for the disease much earlier?
+\begin{itemize}
+\item
+Predict susceptibility
 \bigskip
-\item[]
-Each cell reading has concentrations of 4 molecules: CD3, CD4, CD8, and CD8$\beta$
+\item
+Apply treatments to prevent or weaken effects
+\end{itemize}
 \bigskip
-\item[]
-Previous study (Brinkman 2007): 
+\alert{Answer}: Yes!
 \bigskip
 \begin{itemize}
 \item
-showed that susceptibility to disease strongly correlates with cells containing high levels of CD3, CD4, and CD8$\beta$
+Key: look at \textbf{cell populations} -- groups of cells with similar genetic \& physical characteristics
+\end{itemize}
+\end{itemize}
+\end{frame}
 
+\begin{frame}\frametitle{Previous study}
+\begin{itemize}
+\item[]
+\alert{Brinkman et al. (2007):} 31 patients with \& without disease
+\bigskip
+\item[]
+\alert{Their goal:} look for patterns in white blood cells
+\bigskip
+\item[]
+They measured concentrations of \emph{4 molecules} within each cell: \\CD3, CD4, CD8, \& CD8$\beta$
+\bigskip
+\item[]
+\alert{Findings:}
+\medskip
+\begin{itemize}
+\item
+\emph{Susceptibility to disease} strongly correlates with cell populations that contain \emph{high levels of CD3, CD4, \& CD8$\beta$}
 \bigskip
 \item
-grouped cells into populations using physical and fluorescent properties to identify such cells
+Identified specific cell populations using physical/chemical properties of cells
 \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Case study: Objectives}
 \begin{itemize}
+
 \item[]
-\alert{Our goal}: Cluster cells using the previous methods and compare to results of Brinkman
-\bigskip
-\begin{enumerate}
+Baudry et al.:
+\medskip
+\begin{itemize}
 \item
-Identify cell populations with high levels of CD3, CD4, and CD8$\beta$ in patient with disease
+\alert{Dataset:}
+ $\approx 7,000$ blood cell measurements from 1 patient \emph{without} graft-vs-host disease
+ \bigskip
+ \item
+\alert{Goal:} cluster cell measurements into cell populations using BIC \& merging method
+
+\end{itemize}
 \bigskip
+\item[]
+Assume Gaussian mixture models with general $\Sigma_k$
+\bigskip
+\item[]
+Compare to manual results of previous study:
+\bigskip
+\begin{itemize}
 \item
-Show that the control patient does not have populations high in CD3, CD4, and CD8$\beta$
-\end{enumerate}
-\bigskip
-\item[]
-Assume Gaussian mixture model with general $\Sigma_k$
-\bigskip
-\item[]
-Cluster cells using BIC, ICL, \& ``combined''
-\bigskip
-\item[]
-\alert{Key detail}: A population is considered positive in a molecule if its estimated mean is $\ge 280$ units
+Show that control patient \emph{does not} have cell populations with high levels of CD3, CD4, \& CD8$\beta$
+\end{itemize}
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Results for individual with disease}
+\begin{frame}\frametitle{Strategy}
 \begin{itemize}
-\item[]
-Each plot shows CD4 levels on $x$-axis, CD8$\beta$ levels on $y$-axis
-\medskip
-\item[]
-\alert{NOTE}: Only CD3-positive clusters are shown
-\end{itemize}
-\begin{center}
-\begin{minipage}{0.3\linewidth}
+\item
+\emph{Cluster cells} into cell populations based on the 4 molecules
+\bigskip
+\item
+Use \emph{threshold} to classify each group has having ``high'' or ``low'' levels of each molecule
+\bigskip
+\item
+Plot concentrations of CD4 vs CD8$\beta$, \& \emph{only display groups with high levels of CD3} on plot
 \begin{itemize}
-\item[]
-Previous study:
-\\
-\item[]
-6 CD3 positive populations
-\\
-\item[]
-3 CD3, CD4, and CD8$\beta$ positive populations
+\bigskip
+\item
+This allows us to identify cell populations with high levels of CD3, CD4, \& CD8$\beta$
 \end{itemize}
-\end{minipage}
-\hfill
-\begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{BIC_positive.png}
-\begin{center}
-BIC solution
-\\
-$K = 12$
-\\
-Ent = 4782
-\end{center}
-\end{minipage}
-\hfill
-\begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{Combined_positive.png}
-\begin{center}
-Merged solution
-\\
-$K = 9$
-\\
-Ent = 1478
-\end{center}
-\end{minipage}
-\end{center}
+\end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Results for control individual}
+\begin{frame}\frametitle{Results for control individual (without disease)}
 \begin{itemize}
-\item[]
-Each plot shows CD4 levels on $x$-axis, CD8$\beta$ levels on $y$-axis
 \medskip
 \item[]
-\alert{NOTE}: Only CD3-positive clusters are shown
+\alert{NOTE}: Only clusters with high CD3 levels are shown
 \end{itemize}
 \begin{center}
-\begin{minipage}{0.3\linewidth}
-\begin{itemize}
-\item[]
-Patient without disease should not have populations positive in CD3, CD4, and CD8$\beta$
-\end{itemize}
-\end{minipage}
-\hfill
-\begin{minipage}{0.3\linewidth}
+\begin{minipage}{0.4\linewidth}
 \includegraphics[width=\linewidth]{BIC_control.png}
 \begin{center}
 BIC solution
 \\
 $K = 10$
 \\
-Ent $ = 3733$
+Entropy $ = 3733$
 \end{center}
 \end{minipage}
 \hfill
-\begin{minipage}{0.3\linewidth}
+\uncover<2->{
+\begin{minipage}{0.4\linewidth}
 \includegraphics[width=\linewidth]{Combined_control.png}
 \begin{center}
 Merged solution
 \\
 $K = 3$
 \\
-Ent $= 58$
+Entropy $= 58$
 \end{center}
 \end{minipage}
+}
 \end{center}
 \end{frame}
 
@@ -614,10 +643,10 @@ Ent $= 58$
 BIC estimates \# components well 
 \bigskip
 \item[]
-ICL uses entropy identifies \# clusters well
+ICL uses entropy to identify \# clusters well
 \bigskip
 \item[]
-Combine strengths by starting with $\estim K_\text{BIC}$ and merging clusters to minimize entropy
+Combine strengths by starting with $\estim K_\text{BIC}$ \& merging clusters to minimize entropy
 \bigskip
 \begin{itemize}
 \item
@@ -625,9 +654,6 @@ Key idea: Allow submixtures as components, so that $\left(\# \text{ mixture comp
 $\ne$ 
 $\left(\# \text{ clusters} \right)$
 \end{itemize}
-\bigskip
-\item[]
-Evidence of superior performance on real data 
 \end{itemize}
 \end{frame}
 
@@ -707,7 +733,9 @@ ICL solution ($K = 2$)
 \begin{minipage}{0.3\linewidth}
 \includegraphics[width=\linewidth]{ICL_positive.png}
 \begin{center}
-ICL solution ($K = 2$)
+ICL solution
+\\$K = 9$
+\\Ent $=3235$ 
 \end{center}
 \end{minipage}
 \hfill
@@ -732,6 +760,51 @@ $K = 9$
 Ent = 1478
 \end{center}
 \end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Full results for individual without disease}
+\alert{NOTE}: Only CD3-positive clusters are shown
+\begin{center}
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{ICL_control.png}
+\begin{center}
+ICL solution
+\\
+$K = 7$
+\\
+Ent $= 1901$
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{BIC_control.png}
+\begin{center}
+BIC solution
+\\
+$K = 10$
+\\
+Ent = 3733
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\linewidth}
+\includegraphics[width=\linewidth]{Combined_control.png}
+\begin{center}
+Merged solution
+\\
+$K = 3$
+\\
+Ent = 58
+\end{center}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Example control data from Brinkman}
+
+\begin{center}
+\includegraphics[width=0.7\linewidth]{Brinkman.png}
 \end{center}
 \end{frame}
 
