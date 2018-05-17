@@ -19,7 +19,6 @@ runAnalysis <- function(working_dat,
                    model_names)
     mc_params <- mc %>% getModelParameters
     densities <- mc_params %>% getDensities
-    # densities <- runEM(K, working_dat)
     K_BIC <- densities %>% length
     ts <- getTs(dat=working_dat, components=densities, K=K_BIC)
     zs <- getZs(ts)
@@ -126,6 +125,9 @@ runAnalysis <- function(working_dat,
     dev.off()
 }
 
+#' Follow the strategy of Baudry by iterating through each possible
+#' change point in 2:(K_max - 1), computing a bi-piecewise regression,
+#' and choosing the one that minimzes the total sum of squares
 plotPiecewiseFitToData <- function(
                                    y_col,
                                    x_col,
@@ -136,20 +138,49 @@ plotPiecewiseFitToData <- function(
     valid_indices <- which(!is.na(y_col))
     ys <- y_col[valid_indices]
     xs <- x_col[valid_indices]
+    n <- length(xs)
     yrange <- c(0, max(ys))
-    print(y_col)
-    print(x_col)
     plot(ys ~ xs, pch=19, xlab=xlab, ylab=ylab, ylim=yrange)
-    lines(ys ~ xs)
     axis(1, at=xs, labels=xs)
-    if(FALSE) {
-        # Need to find a way to fit piecewise linear regression with few data points
-        bp <- breakpoints(y_col ~ x_col, h=h)
-        # seg_fit <- lm(y_col ~ x_col*(x_col < bp) + x_col*(x_col >= bp))
-        lines(fitted(bp, breaks=1) ~ xcol, lty=2, col="red")
+    a1 <- b1 <- a2 <- b2 <- NA
+    lse <- NA
+    for(candidate in 2:(n - 1)) {
+        x1 <- xs[1:candidate]
+        x2 <- xs[candidate:n]
+        y1 <- ys[1:candidate]
+        y2 <- ys[candidate:n]
+
+        a1[candidate] <- a1_c <- (sum(x1*y1) - sum(x1)*mean(y1))/
+            (sum(x1^2) - sum(x1)^2/length(x1))
+        b1[candidate] <- b1_c <- mean(y1) - a1[candidate]*mean(x1)
+
+        a2[candidate] <- a2_c <- (sum(x2*y2) - sum(x2)*mean(y2))/
+            (sum(x2^2) - sum(x2)^2/length(x2))
+        b2[candidate] <- b2_c <- mean(y2) - a2[candidate]*mean(x2)
+
+        lse[candidate] <- sum( (a1_c*x1 + b1_c - y1)^2 ) + 
+            sum( (a2_c*x2 + b2_c - y2)^2 )
     }
+
+    bp <- which.min(lse)
+    lines(a1[bp]*xs[1:bp] + b1[bp] ~ xs[1:bp], col="red", lty=2)
+    lines(a2[bp]*xs[bp:n] + b2[bp] ~ xs[bp:n], col="red", lty=2)
+    
 }
                                   
+runAnalysis(d1,
+            output_dir="Figures/d1/")
+runAnalysis(d2,
+            K_max=15,
+            model_names=c("EEI", "VEI", "EVI", "VVI"),
+            output_dir="Figures/d2/")
+runAnalysis(d3,
+            model_names=c("VII"),
+            output_dir="Figures/d3/")
+runAnalysis(d41,
+            output_dir="Figures/d41/",
+            contour_levels=0.001
+            )
 runAnalysis(unif_dat[, 1:2],
             model_names="VII",
             output_dir="Figures/unif/",
@@ -172,19 +203,6 @@ runAnalysis(d42,
             plot_types="3d"
             )
 
-runAnalysis(d1,
-            output_dir="Figures/d1/")
-runAnalysis(d2,
-            K_max=10,
-            model_names=c("EEI", "VEI", "EVI", "VVI"),
-            output_dir="Figures/d2/")
-runAnalysis(d3,
-            model_names=c("EII", "VII"),
-            output_dir="Figures/d3/")
-runAnalysis(d41,
-            output_dir="Figures/d41/",
-            contour_levels=0.001
-            )
 # Need to make a plot just for the cluster labels,
 # since it's difficult to plot 3D contours
 
