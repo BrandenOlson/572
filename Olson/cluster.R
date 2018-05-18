@@ -89,7 +89,8 @@ getDensities <- function(params) {
     for(k in 1:K) {
         fs[[k]] <- list(Props=list(params$Prop[k]),
                         Mean=list(params$Mean[, k]),
-                        Var=list(params$Variance[, , k])
+                        Var=list(params$Variance[, , k]),
+                        Label=k # Avoid k = 1, which plots black points
                         )
     }
     return(fs)
@@ -126,8 +127,8 @@ getConditionalProbability <- function(x_i, components) {
 }
 
 getMAP <- function(t_ik) {
-    z_i <- t_ik %>% which.max
-    return(z_i)
+    argmax <- t_ik %>% which.max
+    return(argmax)
 }
 
 getTs <- function(dat, components, K) {
@@ -136,8 +137,16 @@ getTs <- function(dat, components, K) {
     return(ts)
 }
 
-getZs <- function(ts) {
-    zs <- ts %>% sapply(getMAP)
+getLabelFromArgmax <- function(argmax, components) {
+    label <- components[[argmax]]$Label
+    return(label)
+}
+
+getZs <- function(ts, components) {
+    zs <- ts %>% 
+        sapply(getMAP) %>%
+        sapply(getLabelFromArgmax, components=components)
+
     return(zs)
 }
 
@@ -158,7 +167,8 @@ combineDensities <- function(f1, f2) {
               Mean=c(f1$Mean,
                      f2$Mean),
               Var=c(f1$Var,
-                    f2$Var)
+                    f2$Var),
+              Label=min(f1$Label, f2$Label)
               )
     return(list(f))
 }
@@ -170,8 +180,6 @@ plotDensities <- function(density_list,
                           num_points=100,
                           contour_levels=0.01
                           ) {
-    colors <- rainbow(length(density_list))
-    color <- 2 # Skip black (1) since points are black 
     xrange <- range(dat[, 1])
     yrange <- range(dat[, 2])
     xrange <- c(xrange[1] - length(xrange)*0.2,
@@ -184,8 +192,7 @@ plotDensities <- function(density_list,
         pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=10)
     }
     
-    color <- 1
-    plot(dat, xlim=xrange, ylim=yrange, col=colors[zs], pch=19, asp=1,
+    plot(dat, xlim=xrange, ylim=yrange, col=zs + 1, pch=19, asp=1,
          cex.axis=2, cex.lab=3)
     for(density_object in density_list) {
         d <- density_object %>%
@@ -206,11 +213,10 @@ plotDensities <- function(density_list,
         }
 
         contour(x=xs, y=ys, z, 
-                col=colors[color], 
+                col=density_object$Label + 1, 
                 levels=contour_levels,
                 add=TRUE,
                 drawlabels=FALSE)
-        color <- color + 1
     }
     if(!missing(output_prefix)) {
         dev.off()
@@ -244,7 +250,7 @@ deltaEntropy <- function(j,
     return(delta)
 }
 
-argmaxDelta <- function(ts, K) {
+argmaxDelta <- function(components, ts, K) {
     argmax <- {}
     max_delta <- -Inf
     for(j in 1:K) {
@@ -269,12 +275,16 @@ mergeClusters <- function(components,
                           dat
                           ) {
     K <- length(components)
-    delta_ent_object <- argmaxDelta(ts, K)
+    delta_ent_object <- argmaxDelta(components, ts, K)
     argmax <- delta_ent_object$argmax
+    argmax_labels <- argmax %>% sapply(getLabelFromArgmax,
+                                       components=components)
     delta_ent <- delta_ent_object$delta_ent
     zs <- getTs(dat=dat, components=components, K=k) %>%
-        getZs
-    num_merged <- dat[zs %in% argmax, ] %>% nrow
+        getZs(components=components)
+
+
+    num_merged <- zs[zs %in% argmax_labels] %>% length
     new_components <- list()
     merged <- FALSE
     for(i in 1:K) {
@@ -333,14 +343,20 @@ getClusterSequence <- function(dat,
     }
 
     delta_ents <- c(delta_ents, NA)
-    num_merged <- c(num_merged, NA)
+    num_merged <- c(num_merged, 0)
 
-    # Baudry plots the cum sums in reverse for some reason...
-    num_merged_cumsum <- num_merged[!is.na(num_merged)] %>%
+    print(num_merged)
+
+    num_merged_cumsum <- num_merged %>%
+        rev %>%
         cumsum %>%
-        append(0, .) %>%
         rev
 
+    normalized_diff <- c((delta_ents/num_merged)[1:(K - 1)], NA)
+
+    print(delta_ents)
+    print(num_merged)
+    print(normalized_diff)
 
     return(
         list(cluster_list=cluster_list,
@@ -349,7 +365,7 @@ getClusterSequence <- function(dat,
                                TotalEntropy=total_ents,
                                NumMerged=num_merged,
                                NumMergedCumSum=num_merged_cumsum,
-                               NormalizedDiff=delta_ents/num_merged
+                               NormalizedDiff=normalized_diff
                               )
                 )
     )

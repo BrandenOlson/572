@@ -21,7 +21,7 @@ runAnalysis <- function(working_dat,
     densities <- mc_params %>% getDensities
     K_BIC <- densities %>% length
     ts <- getTs(dat=working_dat, components=densities, K=K_BIC)
-    zs <- getZs(ts)
+    zs <- getZs(ts, densities)
     
     cluster_seq_object <- getClusterSequence(working_dat,
                                       densities)
@@ -45,7 +45,7 @@ runAnalysis <- function(working_dat,
                     components=icl_densities,
                     K=K_ICL
                     ) %>%
-        getZs
+        getZs(components=icl_densities)
 
     # Plot unlabeled data
     pdf(paste0(output_dir, "unclustered.pdf"))
@@ -80,7 +80,7 @@ runAnalysis <- function(working_dat,
                zs <- getTs(dat=working_dat,
                            components=x,
                            K=K) %>%
-                   getZs
+                   getZs(components=x)
                if(plot_types=="2d") {
                    plotDensities(x,
                              output_prefix=y,
@@ -102,22 +102,25 @@ runAnalysis <- function(working_dat,
            cluster_seq,
            plot_names
     )
-    
+
     pdf(paste0(output_dir, "entropy.pdf"))
     par(mfrow=c(2, 2))
+    plotPiecewiseFitToData(entropy$TotalEntropy,
+                           entropy$K,
+                           xlab="K",
+                           ylab="Total entropy",
+                           do_regression=TRUE
+                          )
     plotPiecewiseFitToData(entropy$DeltaEntropy,
                            entropy$K - 1,
                            ylab="Difference in entropy from K + 1",
                            xlab="K")
     plotPiecewiseFitToData(entropy$TotalEntropy,
-                           entropy$K,
-                           xlab="K",
-                           ylab="Total entropy"
-                          )
-    plotPiecewiseFitToData(entropy$DeltaEntropy,
                            entropy$NumMergedCumSum,
                            xlab="Cumulative count of merged observations",
-                           ylab="Difference in entropy")
+                           ylab="Total entropy",
+                           do_regression=TRUE
+                           )
     plotPiecewiseFitToData(entropy$NormalizedDiff,
                            entropy$K,
                            xlab="K",
@@ -133,7 +136,7 @@ plotPiecewiseFitToData <- function(
                                    x_col,
                                    xlab,
                                    ylab,
-                                   h=3
+                                   do_regression=FALSE
                                    ) {
     valid_indices <- which(!is.na(y_col))
     ys <- y_col[valid_indices]
@@ -141,30 +144,31 @@ plotPiecewiseFitToData <- function(
     n <- length(xs)
     yrange <- c(0, max(ys))
     plot(ys ~ xs, pch=19, xlab=xlab, ylab=ylab, ylim=yrange)
-    axis(1, at=xs, labels=xs)
     a1 <- b1 <- a2 <- b2 <- NA
     lse <- NA
-    for(candidate in 2:(n - 1)) {
-        x1 <- xs[1:candidate]
-        x2 <- xs[candidate:n]
-        y1 <- ys[1:candidate]
-        y2 <- ys[candidate:n]
+    if(n > 2 && do_regression) {
+        for(candidate in 2:(n - 1)) {
+            x1 <- xs[1:candidate]
+            x2 <- xs[candidate:n]
+            y1 <- ys[1:candidate]
+            y2 <- ys[candidate:n]
 
-        a1[candidate] <- a1_c <- (sum(x1*y1) - sum(x1)*mean(y1))/
-            (sum(x1^2) - sum(x1)^2/length(x1))
-        b1[candidate] <- b1_c <- mean(y1) - a1[candidate]*mean(x1)
+            a1[candidate] <- a1_c <- (sum(x1*y1) - sum(x1)*mean(y1))/
+                (sum(x1^2) - sum(x1)^2/length(x1))
+            b1[candidate] <- b1_c <- mean(y1) - a1[candidate]*mean(x1)
 
-        a2[candidate] <- a2_c <- (sum(x2*y2) - sum(x2)*mean(y2))/
-            (sum(x2^2) - sum(x2)^2/length(x2))
-        b2[candidate] <- b2_c <- mean(y2) - a2[candidate]*mean(x2)
+            a2[candidate] <- a2_c <- (sum(x2*y2) - sum(x2)*mean(y2))/
+                (sum(x2^2) - sum(x2)^2/length(x2))
+            b2[candidate] <- b2_c <- mean(y2) - a2[candidate]*mean(x2)
 
-        lse[candidate] <- sum( (a1_c*x1 + b1_c - y1)^2 ) + 
-            sum( (a2_c*x2 + b2_c - y2)^2 )
+            lse[candidate] <- sum( (a1_c*x1 + b1_c - y1)^2 ) + 
+                sum( (a2_c*x2 + b2_c - y2)^2 )
+        }
+
+        bp <- which.min(lse)
+        lines(a1[bp]*xs[1:bp] + b1[bp] ~ xs[1:bp], col="red", lty=2)
+        lines(a2[bp]*xs[bp:n] + b2[bp] ~ xs[bp:n], col="red", lty=2)
     }
-
-    bp <- which.min(lse)
-    lines(a1[bp]*xs[1:bp] + b1[bp] ~ xs[1:bp], col="red", lty=2)
-    lines(a2[bp]*xs[bp:n] + b2[bp] ~ xs[bp:n], col="red", lty=2)
     
 }
                                   
