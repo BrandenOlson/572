@@ -15,6 +15,8 @@
 \usepackage{bbm}
 \usepackage{cancel}
 \usepackage{courier}
+\usepackage{float}
+\usepackage[caption = false]{subfig}
 \usepackage{graphicx}
 \usepackage{empheq}
 \usepackage{enumitem}
@@ -30,8 +32,6 @@
 
 \pagenumbering{gobble}
 
-\usepackage{floatrow}
-\floatsetup[figure]{capposition=top}
 \DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
 
 \DeclareMathAlphabet{\mathsfit}{\encodingdefault}{\sfdefault}{m}{}
@@ -191,41 +191,35 @@ This method is applied to simulated and real data, demonstrating superior perfor
 
 \section{Introduction}
 
+\subsection{The problem of clustering}
 Many situations arise in which collected data points must be clustered into similar subgroups. 
 For example, we might wish to cluster DNA sequences from a population into phylogenetic families, or categorize X-ray data readings by the galaxies from which the waves originated.
 In general, we consider clusters to be contiguous, densely-populated regions of a feature space, separated by contiguous, relatively empty regions.
 The problem of clustering can be quite challenging as the usual difficulties of modeling the underlying distribution are compounded by the absence of information about the nature of the clusters.
 Indeed, the field of clustering contains a broad and vast set of approaches based on various assumptions of the data-generating mechanism and cluster specifications.
 
-% Cluster analysis background
 Clustering methods are motivated by heuristics, formal statistical models, or a combination thereof.
 Hierarchical clustering techniques either merge or split clusters at each stage \citep{Fraley98}.
 Agglomerative, or ``bottom-up'', clustering starts with a large number of clusters (often with each point comprising its own cluster) and merges the clusters based on some criterion.
 These criteria include neigherest-neighbor, farthest-neighbor, and sum of squares, or maximum likelihood rules \citep{Kaufman90, Murtagh84, Banfield93}.
 Divisive, or ``top-down'', clustering recursively divides the clusters starting from large groups. 
 Another class of clustering tools known as relocation methods start from an initial division and successively move points to other groups.
-In particular, the popular $k$-means relocation method moves points to reduce the intra-cluster sum of squares \citep{Hartigan78}. 
+In particular, the popular $k$-means relocation method reassigns points to reduce the intra-cluster sum of squares \citep{Hartigan78}. 
 
-% Model-based clustering
-
-% EM algorithms
+\subsection{Model-based clustering}
 
 Another approach known as model-based clustering assumes that the data were generated from a mixture model of probability distributions and can be assigned cluster labels based on their most likely mixture components.
+Here, we decompose the probability density $f$ of each point $\bx_i$ as a sum of scaled component densities parametrized by $\btheta$:
+\ba
+f(\bx_i ; K, \btheta_K)
+	& = \sum_{k=1}^K p_k \phi(\bx_i ; \btheta).
+\ea
+Here, $p_k, k = 1, \dotsc, K$ are positive mixture proportions which sum to one, and $\phi$ is any valid density.
 Modelers commonly choose Gaussian component densities, often with success \citep{Murtagh84, Banfield93, Dasgupta98, Campbell97, Celeux95, Mukerjee98}.
 However, other distributions may better suit the nature of the data, making the choice of density context-dependent.
 For example, the $t$-density is appropriate in the presence of outliers which heavily influence cluster definitions \citep{Peel00}.
 The parameters of the underlying densities can be estimated using the expectation-maximization (EM) algorithm, viewing the ``true'' cluster memberships as the missing or complete data \citep{McLachlan88, Dempster77}. 
 
-
-\cite{Baudry10} focus on the model-based paradigm, assuming multivariate Gaussian mixture component densities. 
-That is, given $K$ mixture components, we decompose the density of $\bx_i$ as
-\ba
-f(\bx_i | K, \btheta_K)
-	& = \sum_{i=k}^K p_k \phi \left(\bx_i ; \mu_k, \Sigma_k \right).
-\ea
-Here, $p_k, k = 1, \dotsc, K$ are the mixture proportions, or the marginal probabilities for each component to generate a new data point a priori, so that $p_k \ge 0 \; \forall k$ and $\sum_{k=1}^K p_k = 1$; $\phi(\cdot; \mu_k, \Sigma_k)$ is the $d$-variate Gaussian density with mean $\mu_k$ and covariance matrix $\Sigma_k$; and $\btheta_K = (\bp, \bmu, \bSigma) = (p_1, \dotsc, p_{K - 1}, \mu_1, \dotsc, \mu_k, \Sigma_1, \dotsc, \Sigma_K)$.
-The choice of covariance is flexible, usually taken to be either spherical ($\Sigma_k = \sigma^2 I_d$), diagonal ($\Sigma_k = \text{diag}(\sigma_{k,1}, \dotsc, \sigma_{k,d})$), or general (unstructured).
-Unsurprisingly, the choice of covariance induces a trade-off between accuracy and tractability, with the more general covariance structures allowing for potentially better model fits, but requiring significantly more parameters to estimate.
 
 It's useful to frame the problem as observing incomplete or censored data from a ``complete'' experiment where the components that generate each data point are known. Notationally, each "complete" data point is a pair $(\bx_i, \bz_i)$, where 
 $\bz_i \in \reals^K$ define the cluster memberships, such that $z_{ik} = \ind{\bx_i \text{ was generated from component $k$}}$.  
@@ -238,6 +232,8 @@ whose derivation is given in Appendix A.
 The EM algorithm is appropriate here since the true component assignments $\bz_i$ can be considered as ``missing'' data on which we can compute conditional expectations given the observed data.
 
 
+
+\subsection{Choosing the number of mixture components $K$}
 The goal in many clustering problems is to choose the number of components $K$ either based on previous knowledge, or perhaps without any other information.
 \citet{Dasgupta98} were the first to propose using the BIC to select the number of components, which in this context is synonymous with the number of clusters. 
 That is, given a set of candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$, compute the MLE estimates for each $K$, and then choose the $K$ which minimizes the BIC (Bayesian information criterion), defined as
@@ -255,9 +251,9 @@ The BIC criterion can be viewed as an approximation to the integrated likelihood
 	& = \int_{\Theta_K} f(\bx | K, \btheta_K) \der \pi(\btheta_K)
 \ea
 where $\pi(\cdot)$ is a prior distribution over the parameter space $\bTheta_K$.
-Under certain regularity conditions, the BIC can be shown to generally estimate the number of components well.
-However, a drawback of this approach is that it implicitly assumes that each mixture component corresponds to its own cluster which is not always desirable.
-In other words, some clusters may be better estimated as mixtures of Gaussians themselves, which is unattainable with this approach. 
+Insofar as the groups are normally distributed, the BIC will typically estimate the number of components well.
+However, the less normally distributed a group is, the BIC is more likely to approximate the group as a combination of multiple Gaussian groups.
+This will lead to an overestimation of $K$ by the BIC when such groups are present in the data. 
 
 \citet{Biernacki00} modify this approach by introducing the ICL criterion, namely,
 \ba
@@ -273,7 +269,7 @@ Analogously to the BIC, this criterion approximates the integrated complete like
 \text{ICL}(\bx, \bz | K)
 	& = \int_{\Theta_K} f(\bx, \bz | K, \btheta_K) \; \der \pi(\btheta_K).
 \ea
-It turns out that the ICL can also be seen as a penalization of the BIC criterion based on the mean Shannon entropy of the fitted model with $K$ components, 
+It turns out that the ICL can also be seen as a penalization of the mean Shannon entropy of the fitted model with $K$ components, 
 \ba
 \text{Ent}(K)
 	& = - \sum_{i=1}^n \sum_{k = 1}^K t_{ik}(\estim\btheta_K) \log t_{ik}(\estim\btheta_K)
@@ -281,10 +277,23 @@ It turns out that the ICL can also be seen as a penalization of the BIC criterio
 The mathematical details of this decomposition be found in Appendix A.
 Because of the entropy penalty, which favors well-separated clusters over connected or jumbled ones, the ICL criterion tends to choose a smaller $K$ than the BIC.
 This often leads an underestimation of mixture components, but a potentially more reasonable estimated number of clusters.
-Furthermore, as in the BIC case, the ICL is restricted to Gaussian models of possibly non-Gaussian cluster distributions.
+Furthermore, as in the BIC case, the ICL is restricted to Gaussian models of possibly non-Gaussian groups.
 
 
 \section{Methods}
+
+\cite{Baudry10} focus on the model-based paradigm, assuming multivariate Gaussian mixture component densities. 
+That is, given $K$ mixture components, we decompose the density of $\bx_i$ as
+\ba
+f(\bx_i | K, \btheta_K)
+	& = \sum_{i=k}^K p_k \phi (\bx_i ; \mu_k, \Sigma_k ).
+\ea
+where $\phi(\cdot; \mu_k, \Sigma_k)$ is the $d$-variate Gaussian density with mean $\mu_k$ and covariance matrix $\Sigma_k$; and $\btheta_K = (\bp, \bmu, \bSigma) = (p_1, \dotsc, p_{K - 1}, \mu_1, \dotsc, \mu_k, \Sigma_1, \dotsc, \Sigma_K)$.
+The choice of covariance is flexible, usually taken to be either spherical ($\Sigma_k = \sigma^2 I_d$), diagonal ($\Sigma_k = \text{diag}(\sigma_{k,1}, \dotsc, \sigma_{k,d})$), or general (unstructured).
+Unsurprisingly, the choice of covariance induces a trade-off between accuracy and tractability, with the more general covariance structures allowing for potentially better model fits, but requiring significantly more parameters to estimate.
+
+
+
 To utilize the respective strengths of the BIC and ICL criteria, \cite{Baudry10}  propose a hierarchical clustering sequence that minimizes the overall entropy during each merge.
 In particular, at each iteration the algorithm determines the pair of clusters which, when merged, yields the largest decrease in entropy.
 They suggest starting the algorithm with $K \gets \estim K_\text{BIC}$, the value of $K$ selected by the BIC criterion.
@@ -343,8 +352,244 @@ One can automatically choose $K$ in this case, such as always choosing the small
 Nonetheless, a general method to automatically select $K$ appears difficult, and may depend on the context and subjective qualities of the different clusterings.
 
 \section{Results}
-So... the mclust package for $K = 6$ using general covariances gives a different result than the authors get.
-Given that mclust is 
+\cite{Baudry10} illustrate their method with several simulation studies and apply it to real datasets from a flow cytometry experiment.
+We reproduce each of these experiments below, commenting on differences between implementations when they arise.
+Each Gaussian mixture model was fit using the popular \texttt{mclust} package, which allows selection of $K$ based on both the BIC and ICL criteria.
+A custom implementation of the EM algorithm was also created for completeness, but the performance is vastly inferior to \texttt{mclust} which uses highly involved and specialized algorithms for both the initialization and main steps of the EM algorithm \citep{Scrucca16, Fraley96}.
+
+\subsection{Gaussian mixture with overlapping components}
+First, we simulate data from a mixture of bivariate Gaussian densities that includes six components.
+The raw, unlabelled data are shown below, representing 600 samples from the mixture.
+It is seen from the plot that both the upper-left and lower-right groups correspond two overlapping component densities, forming ``cross'' clusters.
+The other two component densities represent separate, individual groups.
+The mixture proportions of the components in the lower cross were $1/10$ each, and the mixture proportion of every other component was $1/5$. 
+The unclustered data are seen in Figure \ref{Example1}(a).
+
+\begin{figure}
+\begin{center}
+\subfloat[Unclustered data]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/unclustered.pdf}
+}
+\subfloat[BIC solution]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_6_contour.pdf}
+}
+\subfloat[ICL solution]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/ICL_contour.pdf}
+}
+\\
+\subfloat[Merged solution, $K = 6$]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_6_contour.pdf}
+}
+\subfloat[Merged solution, $K = 5$]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_5_contour.pdf}
+}
+\subfloat[Merged solution, $K = 4$]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_4_contour.pdf}
+}
+\\
+\subfloat[Merged solution, $K = 3$]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_3_contour.pdf}
+}
+\subfloat[Merged solution, $K = 2$]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_2_contour.pdf}
+}
+\subfloat[Merged solution, $K = 1$]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d1/merged_1_contour.pdf}
+}
+\end{center}
+\caption{
+The unclustered data as well as labels and contours corresponding to each of the BIC, ICL, and merged solutions. Note that the BIC and $K = 6$ merged solution coincide.
+}
+\label{Example1}
+\end{figure}
+
+Gaussian mixture models with general covariance structure were fit to these data for $K = 1, \dotsc, 12$.
+The BIC selected $\estim K_{\text{BIC}} = 6$, the true number of components, and the ICL selected $\estim K_{\text{ICL}} = 4$.
+These solutions are shown in Figure \ref{Example1} (b-c), respectively.
+The merging procedure was applied, starting with $\estim K_\text{BIC} = 6$ components, and terminating after computing the $K = 1$ solution.
+Each clustering in the sequence is shown in Figure \ref{Example1}.
+
+Next, we illustrate the suggested entropy regression methodology.
+Figure \ref{Entropy1} shows four plots.
+The first displays the total entropy of the clustering versus the number of components $K$, as well as two line segments corresponding to the piecewise regression that minimizes the total sum of squared errors (SSE).
+That is, we consider each possible change point $c \in \set{2, \dotsc, \estim K_\text{BIC} - 1}$, regress separately on $\set{1, \dotsc, c}$ and $\set{c, \dotsc, K}$, compute SSE$(c)$, and choose $\estim c = \argmin_c \text{SSE}(c)$.
+The second plot displays the difference in entropy when merging from $K + 1$ to $K$ versus $K$.
+The third plot displays the total entropy versus the cumulative count of merged observations.
+The fourth plot displays the normalized difference in entropy when going from $K$ to $K - 1$ versus $K$.
+Each of these plots suggests $K = 4$ as a reasonable change point, and hence a reasonable choice for the number of clusters.
+
+\begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d1/total_entropy.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d1/diff_entropy.pdf}
+}
+\\
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d1/cum_count.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d1/norm_diff.pdf}
+}
+\end{center}
+\caption{Entropy plots for example 3.2}
+\label{Entropy1}
+\end{figure}
+
+\subsection{Gaussian mixture with overlapping components and restricted models}
+The next simulation study applies the previous techniques to data sampled from the same mixture model as in the previous section, but restricts the candidate models by assuming diagonal variances.
+The goal is to assess the performance of the merging technique under model misspecification.
+
+\begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/unclustered.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_11_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/ICL_contour.pdf}
+}
+\\
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_10_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_9_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_8_contour.pdf}
+}
+\\
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_7_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_6_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_5_contour.pdf}
+}
+\\
+\subfloat[]{
+		\includegraphics[width=0.3\linewidth]{../Olson/Figures/d2/merged_4_contour.pdf}
+}
+\end{center}
+\label{Example2}
+\end{figure}
+
+We also show entropy plots, and include piecewise regressions with one change point for the plots of total entropy.
+
+\begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.5\linewidth]{../Olson/Figures/d2/total_entropy.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.5\linewidth]{../Olson/Figures/d2/diff_entropy.pdf}
+}
+\\
+\subfloat[]{
+	\includegraphics[width=0.5\linewidth]{../Olson/Figures/d2/cum_count.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.5\linewidth]{../Olson/Figures/d2/norm_diff.pdf}
+}
+\end{center}
+\end{figure}
+
+\subsection{Mixture of a bivariate uniform and a bivariate, spherical Gaussian}
+Next, we investigate the behavior of the merging method when non-Gaussian groups are present in the data.
+In particular, we simulate a two-component mixture where one component is uniform on $[-1, 1]^2$ and one component is a spherical, bivariate Gaussian.
+
+\begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d3/unclustered.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d3/merged_2_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d3/ICL_contour.pdf}
+}
+\end{center}
+\end{figure}
+
+\subsection{Comparison with Li's method using a Gaussian mixture}
+The next two examples are direct comparisons with a similar method laid out by \cite{Li05}.
+In this method, clusters are also modeled as Gaussian mixtures, although the true number of clusters $K$ is assumed to be known in advanced.
+The algorithm is initialized using a two-layer $k$-means technique: one run of $k$-means for the $K$ clusters, and then a further $k$-means run within each cluster.
+Then, within each cluster, the algorithm again performs $k$-means, and uses the BIC to select the number of components. 
+The algorithm then merges clusters to minimize an inertia, or sum-of-squares, criterion; this contrasts with the entropy criterion of \cite{Baudry10}.
+The total number of components is selected using the BIC.
+
+ \begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d41/unclustered.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d41/merged_4_contour.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d41/merged_3_contour.pdf}
+}
+\end{center}
+\end{figure}
+
+\subsection{Comparison with Li's method using a trivariate uniform mixture with overlapping components}
+The second comparison with the method of \cite{Li05} uses a trivariate uniform mixture composed of two distinct groups: a horizontally-oriented ``cross'' and a vertically-oriented ``pillar''.
+See INSERT FIGURE HERE for a 3-dimensional visualization and 2-dimensional projection of the data.
+We fit general Gaussian mixture models and apply our merging technique.
+
+ \begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d42/merged_1_scatter.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d42/merged_1_top_2d.pdf}
+}
+\\
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d42/merged_3_scatter.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d42/merged_3_top_2d.pdf}
+}
+\\
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d42/merged_2_scatter.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d42/merged_2_top_2d.pdf}
+}
+\end{center}
+\end{figure}
+
+
+\subsection{Flow cytometry study}
+
+Now we examine datasets from \cite{Brinkman07}.
+To identify CD3$^+$CD4$^+$CD8$\beta^+$ populations, we follow the strategy of \cite{Lo08}.
+
+\begin{figure}
+\begin{center}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d51_raw/merged_13_CD3_CD8beta.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d51_raw/ICL_CD3_CD8beta.pdf}
+}
+\subfloat[]{
+	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d51_raw/merged_8_CD3_CD8beta.pdf}
+}
+\end{center}
+\end{figure}
 
 \section{Discussion}
 
@@ -531,7 +776,26 @@ If $M_1 = \dotsc = M_m$, then
 \Pr{M_\ell | \bx} & = \frac{f(\bx | M_\ell)}{ \sum_{r=1}^m f(\bx | M_r) }.
 \ea
 
-\section*{Appendix E: Derivation of BIC}
+\subsection*{Mean of a Gaussian submixture}
+A cluster is considered positive in a biomarker $B$ if its estimated mean $\mu_B$ is $\ge 280$ units.
+In order to compute its mean, we need to derive the expression for a mean of a submixture of Gaussians, which can be done via the following.
+Let $f_s$ be a density corresponding to a submixture of $m \le K$ Gaussian component densities.
+Then WLOG we can write
+\ba
+f_s(\bx) = \sum_{j=1}^m p_j \phi_j(\bx | \mu_j, \Sigma_j).
+\ea
+Let $X \sim f_s$ be a sample from this density, i.e., a sample from the overall mixture conditioned on the component belonging to this particular submixture.
+Then the conditional probability that the generating component is $j$ is a multinomial, with probability $\frac{p_j}{\sum_{k=1}^m p_k}$.
+Then we have by the law of total expectation,
+\ba
+\E{X}
+	& = \sum_{j=1}^m \E{X \mid \text{component} = j }
+			\Pr{ \text{component} = j } \\
+	& = \sum_{j=1}^m \mu_j \cdot \frac{p_j}{ \sum_k^m p_k } \\
+	& = \frac{ \sum_{j=1}^m p_j \mu_j }{ \sum_{j=1}^m p_j }
+\ea
+which verifies the claim.
+
 
 
 \end{document}

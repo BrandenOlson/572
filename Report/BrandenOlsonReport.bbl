@@ -1,4 +1,4 @@
-\begin{thebibliography}{14}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -24,6 +24,15 @@ C.~Biernacki, G.~Celeux, and G.~Govaert.
 \newblock \emph{IEEE Transactions on Pattern Analysis and Machine
   Intelligence}, 22:\penalty0 719--725, 2000.
 
+\bibitem[Brinkman et~al.(2007)Brinkman, Gasparetto, Lee, Ribickas, Perkins,
+  Janssen, Smily, and Smith]{Brinkman07}
+R.R. Brinkman, M.~Gasparetto, S.J.J. Lee, A.J. Ribickas, J.~Perkins,
+  W.~Janssen, R.~Smily, and C.~Smith.
+\newblock High-content flow cytometry and temporal data analysis for defining a
+  cellular signature of graft-versus-host disease.
+\newblock \emph{Biology of Blood and Marrow Transplantation}, 13:\penalty0
+  691--700, 2007.
+
 \bibitem[Campbell et~al.(1997)Campbell, Fraley, Murtagh, and
   Raftery]{Campbell97}
 J.G. Campbell, C.~Fraley, F.~Murtagh, and A.E. Raftery.
@@ -48,6 +57,12 @@ A.P. Dempster, N.M. Laird, and D.B. Rubin.
 \newblock \emph{Journal of the Royal Statistical Society, Series B},
   39:\penalty0 1--38, 1977.
 
+\bibitem[Fraley(1996)]{Fraley96}
+C.~Fraley.
+\newblock Algorithms for model-based {G}aussian hierarchical clustering.
+\newblock Technical Report 311, Department of Statistics, University of
+  Washington, October 1996.
+
 \bibitem[Fraley and Raftery(1998)]{Fraley98}
 C.~Fraley and A.E. Raftery.
 \newblock How many clusters? {A}nswers via model-based cluster analysis.
@@ -62,6 +77,18 @@ J.A. Hartigan and M.A. Wong.
 L.~Kaufman and P.J. Rousseeuw.
 \newblock \emph{Finding Groups in Data}.
 \newblock Wiley, New York, 1990.
+
+\bibitem[Li(2005)]{Li05}
+J.~Li.
+\newblock Clustering based on a multilayer mixture model.
+\newblock \emph{Journal of Computational and Graphical Statistics},
+  14:\penalty0 547--568, 2005.
+
+\bibitem[Lo et~al.(2008)Lo, Brinkman, and Gottardo]{Lo08}
+K.~Lo, R.R. Brinkman, and R.~Gottardo.
+\newblock Automated gating of flow cytometry data via robust model-based
+  clustering.
+\newblock \emph{Cytometry A}, 73:\penalty0 321--332, 2008.
 
 \bibitem[McLachlan and Basford(1988)]{McLachlan88}
 G.J. McLachlan and K.E. Basford.
@@ -84,5 +111,11 @@ F.~Murtagh and A.E. Raftery.
 D.~Peel and G.J. McLachlan.
 \newblock Robust mixture modeling using the $t$ distribution.
 \newblock \emph{Statistical Computing}, pages 339--348, 2000.
+
+\bibitem[Scrucca et~al.(2016)Scrucca, Fop, Murphy, and Raftery]{Scrucca16}
+L.~Scrucca, M.~Fop, T.B. Murphy, and A.E. Raftery.
+\newblock mclust 5: {C}lustering, classification and density estimation using
+  {G}aussian finite mixture models.
+\newblock \emph{The R Journal}, 8\penalty0 (1), 2016.
 
 \end{thebibliography}
