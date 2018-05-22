@@ -137,7 +137,7 @@ getTs <- function(dat, components, K) {
     return(ts)
 }
 
-getLabelFromArgmax <- function(argmax, components) {
+getLabelFromIndex <- function(argmax, components) {
     label <- components[[argmax]]$Label
     return(label)
 }
@@ -145,7 +145,7 @@ getLabelFromArgmax <- function(argmax, components) {
 getZs <- function(ts, components) {
     zs <- ts %>% 
         sapply(getMAP) %>%
-        sapply(getLabelFromArgmax, components=components)
+        sapply(getLabelFromIndex, components=components)
 
     return(zs)
 }
@@ -157,7 +157,7 @@ BIC <- function(log_lik, nu, n) {
 
 getEntropy <- function(ts) {
     t_vec <- ts %>% unlist
-    ent <- -sum(t_vec*log(t_vec))
+    ent <- -sum(t_vec*log(t_vec)) %>% abs
     return(ent)
 }
 
@@ -189,11 +189,11 @@ plotDensities <- function(density_list,
     xs <- seq(xrange[1], xrange[2], length.out=num_points)
     ys <- seq(yrange[1], yrange[2], length.out=num_points)
     if(!missing(output_prefix)) {
-        pdf(paste0(output_prefix, "_contour.pdf"), width=10, height=10)
+        pdf(paste0(output_prefix, "_contour.pdf"), width=6, height=6)
     }
     
     plot(dat, xlim=xrange, ylim=yrange, col=zs + 1, pch=19, asp=1,
-         cex.axis=2, cex.lab=3)
+         cex=0.5, cex.axis=2, cex.lab=2)
     for(density_object in density_list) {
         d <- density_object %>%
             getDensityFunction
@@ -205,7 +205,7 @@ plotDensities <- function(density_list,
         }
 
         if(FALSE) {
-            pdf(paste0(output_prefix, "_density.pdf"), width=10, height=6)
+            pdf(paste0(output_prefix, "_density.pdf"), width=10, height=10)
             surface3d(xs, ys, z, col="lightgreen")
             aspect3d(1, 1, 1)
             bbox3d(back="lines")
@@ -277,7 +277,7 @@ mergeClusters <- function(components,
     K <- length(components)
     delta_ent_object <- argmaxDelta(components, ts, K)
     argmax <- delta_ent_object$argmax
-    argmax_labels <- argmax %>% sapply(getLabelFromArgmax,
+    argmax_labels <- argmax %>% sapply(getLabelFromIndex,
                                        components=components)
     delta_ent <- delta_ent_object$delta_ent
     zs <- getTs(dat=dat, components=components, K=k) %>%
@@ -345,18 +345,12 @@ getClusterSequence <- function(dat,
     delta_ents <- c(delta_ents, NA)
     num_merged <- c(num_merged, 0)
 
-    print(num_merged)
-
     num_merged_cumsum <- num_merged %>%
         rev %>%
         cumsum %>%
         rev
 
     normalized_diff <- c((delta_ents/num_merged)[1:(K - 1)], NA)
-
-    print(delta_ents)
-    print(num_merged)
-    print(normalized_diff)
 
     return(
         list(cluster_list=cluster_list,
@@ -408,17 +402,22 @@ plotCD3Clusters <- function(dat,
                             ) {
     cd3_pos <- components %>%
         sapply(isCD3Positive) %>%
-        which
+        which %>%
+        sapply(getLabelFromIndex, components=components)
 
     if(length(cd3_pos) > 0) {
         cd3_pos_dat <- dat[zs %in% cd3_pos, ]
         cd3_zs <- zs[zs %in% cd3_pos]
-        pdf(paste0(prefix, "_CD3_CD8beta.pdf"))
+        pdf(paste0(prefix, "_CD3_CD8beta.pdf"), width=6, height=6)
+        par(mar=c(5, 5, 2, 2))
         plot(CD8beta ~ CD4, 
              data=cd3_pos_dat, 
              col=cd3_zs %>% as.factor,
-             pch=cd3_zs, 
+             pch=19, 
+             cex=0.3, cex.axis=2, cex.lab=2,
              asp=1)
+        abline(h=280)
+        abline(v=280)
         dev.off()
     }
 }
