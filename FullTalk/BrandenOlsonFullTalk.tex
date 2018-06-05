@@ -6,8 +6,41 @@
   \definecolor{blue}{rgb}{0.8,0,0}
 \setbeamercolor{ separation line }{bg=black}
   \setbeamercolor{frametitle}{bg=gray!20!white}
-  \setbeamertemplate{footline}[frame number]
+  \setbeamertemplate{footline}{% 
+  \hfill% 
+  \usebeamercolor[fg]{page number in head/foot}% 
+  \usebeamerfont{page number in head/foot}% 
+  \insertframenumber%
+  %\,/\,\inserttotalframenumber
+  \kern1em\vskip2pt% 
 }
+}
+
+\makeatletter
+\def\mytitleframe{\bgroup
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor\expandafter\beamer@ifempty\expandafter{\beamer@shortinstitute}{}{~~(\insertshortinstitute)}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+%    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+    \hspace*{6ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\maketitle
+\egroup
+\addtocounter{framenumber}{-1}
+}
+\makeatother
+
 \newcommand\hmmax{0}
 \newcommand\bmmax{0}
 \usepackage{natbib, verbatim}
@@ -172,7 +205,7 @@
 \newcommand{\bt}{\mbox{\protect\boldmath $t$}}
 \newcommand{\bc}{\mbox{\protect\boldmath $c$}}
 \newcommand{\bC}{\mbox{\protect\boldmath $C$}}
-\newcommand{\bp}{\mbox{\protect\boldmath $p$}}
+\newcommand{\bp}{\mathbf{p}}
 \newcommand{\bV}{\mbox{\protect\boldmath $V$}}
 \newcommand{\bX}{\mbox{\protect\boldmath $X$}}
 \newcommand{\bW}{\mbox{\protect\boldmath $W$}}
@@ -200,8 +233,8 @@
 \author[]
 {Jean-Patrick Baudry, Adrian E. Raftery, Gilles Celeux, Kenneth Lo, and Rapha$\ddot{\text e}$l Gottardo\\$\;$ \\Presented by Branden Olson}
 
-\date[April, 2018]
-{April 12, 2018}
+\date[]
+{June 13, 2018}
 
 \institute[]
 {
@@ -216,53 +249,59 @@
 %3. What new ideas do the authors propose?
 %
 %4. What are the interesting findings of the experiments on real data?
+\AtBeginSection[]
+{
+   \begin{frame}
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+   \end{frame}
+}
 
 \begin{document}
 
-\begin{frame}[noframenumbering]
-  \titlepage
-\end{frame}
+\mytitleframe
+
+\section{Introduction} 
 
 \begin{frame}\frametitle{Scientific Problem}
 \begin{itemize}
 \item[]
 \alert{Goal:} cluster data into groups
-\medskip
+\bigskip
 \item[]
 \alert{Def'n. of groups}: "Contiguous, densely-populated regions of feature space, separated by contiguous, relatively empty regions"
-\medskip
+\bigskip
 \item[]
-An example clustering of data in $\reals^2$:
-\smallskip
-\begin{center}
-\includegraphics[width=0.8\linewidth]{clustered.pdf}
-\end{center}
+\alert{Difficulty:} \# of groups often unknown
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Example clustering of data in $\reals^2$}
+\begin{center}
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=\linewidth]{unclustered.pdf}
+\begin{center}
+Unclustered
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\linewidth}
+\includegraphics[width=\linewidth]{clustered.pdf}
+\begin{center}
+Clustered \& labeled
+\end{center}
+\end{minipage}
+\end{center}
 \end{frame}
 
 \begin{frame}\frametitle{Model-based clustering}
 \begin{itemize}
 \item[]
-\alert{Clustering:} very broad field
+\alert{Our focus:} model-based clustering
 \bigskip
 \item[]
-\alert{Our focus:} \emph{model-based clustering}
-\bigskip
-\item[]
-\alert{Assumption:} data sampled from mixture density (e.g. Gaussian), and groups correspond to mixture components
-\bigskip
-\item[]
-\alert{Why?} Can estimate number of components and their parameters using expectation-maximization (EM) algorithm
-\bigskip
-\item[]
-\alert{Problem:} What if the groups are non-Gaussian?
-\end{itemize}
-\end{frame}
+\alert{Assumption:} each data point $\bx_i \sim$ \emph{Gaussian mixture density} with $K$ components:
 
-\begin{frame}\frametitle{Gaussian model-based clustering}
-\begin{itemize}
-\item[]
-\alert{Our setup:} Assume $\bx_i \sim$ \emph{multivariate normal mixture} with $K$ components
 \ba
 f(\bx_i ; K, \theta_K) 
 	& = \sum_{k=1}^K p_k
@@ -273,28 +312,55 @@ f(\bx_i ; K, \theta_K)
 \begin{itemize}
 \item
 $\bp = (p_1, \dotsc, p_K)$: mixture proportions
-\medskip
+\bigskip
 \item
 $\pmb\mu = (\mu_1, \dotsc, \mu_K)$: component means
-\medskip
+\bigskip
 \item
 $\pmb\Sigma = (\Sigma_1, \dotsc, \Sigma_K)$: component covariances
-\end{itemize}
 \bigskip
-\item[]
-Given $K$, get MLE 
-$\estim\theta_K = (\estim{\mathbf p}, \estim{\pmb\mu}, \estim{\pmb\Sigma})$ using EM algorithm
-\bigskip
-\item[]
-\alert{Goals:} \emph{Select $K$} among candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$,  \& \emph{infer cluster structure}
-\medskip
+\item 
+$\theta_K = (\bp, \bmu, \pmb\Sigma)$: total parameter vector
+\end{itemize} 
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Previous work: BIC}
+\begin{frame}\frametitle{Model-based clustering}
+\begin{itemize}
+\item[] \alert{Caveat:} Each group corresponds to a mixture component
+\bigskip
+\item[]
+\alert{Pro:} Can estimate \# of components \& parameters easily
+\bigskip
+\begin{itemize}
+\item E.g. Expectation-Maximization (EM) algorithm
+\end{itemize}
+\bigskip
+\item[]
+\alert{Cons:} What if the groups are non-Gaussian?
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Model selection}
 \begin{itemize}
 \item[]
-Dasgupta \& Raftery (1998): $\estim K = \argmin_K \text{BIC}(K)$, where
+Start with set of candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$ 
+\bigskip
+\item[]
+For each $K$ in the set, 
+compute the MLE 
+$\estim\theta_K = (\estim{\mathbf p}, \estim{\pmb\mu}, \estim{\pmb\Sigma})$
+\bigskip
+\item[]
+\alert{Goal}: Choose the ``best'' model $\left(\estim K, \estim\theta_{\estim K}\right)$, according to some criterion
+\end{itemize}
+\end{frame}
+
+\section{Previous work: BIC}
+\begin{frame}\frametitle{Bayesian Information Criterion (BIC)}
+\begin{itemize}
+\item[]
+Dasgupta \& Raftery (1998): $\estim K = \argmax_K \text{BIC}(K)$, where
 \ba
 \text{BIC}(K)
 	= \underbrace{\log \; f(\bx; K, \estim\theta_K)}_\text{\alert{observed} log-likelihood} 
@@ -302,23 +368,34 @@ Dasgupta \& Raftery (1998): $\estim K = \argmin_K \text{BIC}(K)$, where
 \ea
 \begin{itemize}
 \item
-$\bx = (\bx_1, \dotsc, \bx_n)$: data
-\medskip
+$f(\bx; K, \estim\theta_K) = \prod_{i=1}^n f(\bx_i; K, \estim\theta_K)$
+\bigskip
 \item
-$\estim\theta_K = $ MLE for parameters (from EM)
-\medskip
+$\estim\theta_K = $ MLE for parameters
+\bigskip
 \item
 $\nu_K = \# $ of free parameters in $K$-component model
 \end{itemize}
-\bigskip
-Estimates \# mixture components well
-\bigskip
-\item[]
-Treats each component as its own cluster which may be unreasonable
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Illustration}
+\begin{frame}\frametitle{BIC: Remarks}
+\begin{itemize}
+\item[]
+\alert{Pro:} Estimates \# of components well insofar as the Gaussian approximation holds
+\bigskip
+\item[]
+\alert{Con:} Infers non-Gaussian groups as a combination of multiple Gaussian components
+\begin{itemize}
+\bigskip
+\item
+Overestimates the \# of groups, since each component represents a group
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}\frametitle{Problematic example}
 \begin{itemize}
 \item[]
 Simulate 500 points from unit square in $\reals^2$ \& 200 points from a 
@@ -328,7 +405,7 @@ $\mathcal N_2\left(\begin{pmatrix} 1 \\ 2 \end{pmatrix},
 \includegraphics[width=0.5\linewidth]{../Olson/Figures/unif/unclustered.pdf}
 \end{center}
 \item[]
-Assume spherical covariances, get $\estim\theta_K$  for each $K$, \& get $\estim K_\text{BIC}$
+Assume spherical covariances, get $\estim\theta_K$  for each $K \in \set{1, \dotsc, 10}$, \& compute $\estim K_\text{BIC}$
 \end{itemize}
 \end{frame}
 
@@ -339,14 +416,15 @@ Clustered, labelled data \& contours of estimated densities:
 \end{center}
 \begin{itemize}
 \item
-BIC estimates 5 components, but there are only 2 groups/clusters
+BIC yields 5 components/clusters, but there are only 2 groups
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Previous work: completed likelihood}
+\section{Previous work: ICL}
+\begin{frame}\frametitle{Completed likelihood}
 \begin{itemize}
 \item[]
-Biernacki et al. (2000): consider the completed likelihood
+Biernacki et al. (2000): consider the \text{\color<1>[rgb]{0,0.7,0}{completed}} likelihood
 \ba
 f(\bx_i, \text{\color<1>[rgb]{0,0.7,0}{$\bz_i$}} ; K, \estim\theta_K)
 	& = \sum_{k=1}^K p_k \phi(\bx_i; \mu_k, \Sigma_k) 
@@ -358,9 +436,12 @@ f(\bx_i, \text{\color<1>[rgb]{0,0.7,0}{$\bz_i$}} ; K, \estim\theta_K)
 
 \item
 $z_{ik} = \ind{ \bx_i \text{ arises from component } k}$
-\medskip
+\bigskip
 \item 
-$\bz_i = (z_{i1}, \dotsc, z_{iK})$ $\implies$ basis vector in $\reals^K$
+$\bz_i = (z_{i1}, \dotsc, z_{iK})$: standard basis vector in $\reals^K$
+\bigskip
+\item
+$\bz = (\bz_1, \dotsc, \bz_n)$: $K \times n$ binary matrix
 \end{itemize}
 \bigskip
 \item[]
@@ -368,52 +449,96 @@ The $\bz_i$ are unobserved, but we can estimate them!
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Previous work: ICL criterion}
+\begin{frame}\frametitle{Integrated Completed Likelihood (ICL) criterion}
 \begin{itemize}
 \item[]
-So, instead choose $\estim K = \argmin_K \text{ICL}(K)$, where
+So, instead choose $\estim K = \argmax_K \text{ICL}(K)$, where
 \ba
 \text{ICL}(K)
 	= \underbrace{\log \; f(\bx, \text{\color<1>[rgb]{0,0.7,0}{$\estim\bz$}}; K, \estim\theta_K)}_\text{\alert{"completed"} log-likelihood} - \frac{\nu_K \log(n)}{2}
 \ea
 \begin{itemize}
 \item
-$\estim\bz = (\estim\bz_1, \dotsc, \estim\bz_n)$
-\medskip
+$f(\bx, \estim\bz) = \prod_{i=1}^n f(\bx_i, \estim\bz_i; K, \estim\theta_K)$
+\bigskip
 \item
 $\estim\bz_i$ = the most likely cluster assignment of $\bx_i$ given $\estim\theta_K$
 \end{itemize}
-\bigskip
-\item[]
-Penalizes entropy of clustering
-\bigskip
-\item[]
-Estimates \# of clusters well, but can underestimate $K$
-
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{New ideas}
+\begin{frame}\frametitle{ICL: Under the hood}
+\begin{itemize}
+\bigskip
+\item[]
+Can show ICL penalizes entropy of clustering:
+
+\ba
+\text{Entropy}(K) = - \sum_{i=1}^n \sum_{k=1}^K
+	t_{ik}(\estim\theta_K) \log t_{ik}(\estim\theta_K)
+\ea
+where
+\ba
+t_{ik}(\estim\theta_K) & = \Pr{\bx_i \text{ arises from component $k$} \;\bigg|\; \estim\theta_K } \\
+	& = \frac{ p_k \phi_k(\bx_i | \mu_k, \Sigma_k)  }
+ 	{ \sum_{j=1}^K p_j \phi_j(\bx_i | \mu_j, \Sigma_j) }
+\ea
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{ICL: Remarks}
 \begin{itemize}
 \item[]
-Exploit respective strengths of BIC and ICL with the following procedure:
+\alert{Pro:} Better estimates \# of \emph{groups}, even under model misspecification
+\bigskip
+\item[]
+\alert{Con:} Can underestimate \# of \emph{components}
+\begin{itemize}
+\bigskip
+\item
+Often includes poorly separated groups into one cluster 
+\end{itemize}
+\bigskip
+\item[]
+\alert{Question:} Does each component really represent a separate cluster? 
+\end{itemize}
+\end{frame}
+
+\section{New contributions}
+\begin{frame}\frametitle{Methodology}
+\begin{itemize}
+\item[]
+\alert{Baudry et al.:}
+Let's exploit respective strengths of BIC \& ICL!
+\bigskip
 \begin{enumerate}
-\medskip
 \item
 Start with BIC estimate of $K$ from initial set $\set{K_\text{min}, \dotsc, K_\text{max}}$
-\medskip
+\bigskip
 \item
-At each stage, find the 2 clusters which, when merged, lead to the largest overall decrease in entropy
-\medskip
+At each stage, merge the 2 clusters which results in largest decrease in entropy
+\bigskip
 \item
-Yields \emph{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
+Continue merging clusters, stopping at $K_\text{min}$
 \end{enumerate} 
 \bigskip
 \item[]
-Merging produces components that are Gaussian mixtures themselves
+Yields \emph{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Remarks}
+\begin{itemize}
+\item[]
+Merging produces components that are \alert{Gaussian mixtures themselves}
+\begin{itemize}
+\bigskip
+\item
+Yields new conditional probabilities $t_{ik}$, influencing the entropy
+\end{itemize}
 \bigskip
 \item[]
-Thus, allows (\# components) $\ne$ (\# clusters)
+\alert{Key idea:} allows (\# components) $\ne$ (\# clusters)
 \bigskip
 \item[]
 Complexity: $\mathcal O \left( \left\{\text{rate for } \estim K_\text{BIC} \right\}+ n K_\text{max}^3 \right)$
@@ -428,7 +553,7 @@ Given our sequence of clusterings, how to choose $K$?
 \item[]
 Baudry et al. give a few suggestions:
 \begin{enumerate}
-\medskip
+\bigskip
 \item
 Subjectively, based on scientific background or examining plots
 \bigskip
@@ -436,22 +561,22 @@ Subjectively, based on scientific background or examining plots
 Choosing $K = \estim K_\text{ICL}$
 \bigskip
 \item
-Regressing entropy-based quantities on $K$ to identify when it levels off
+Regressing entropy-based quantities on $K$ to identify a change point
 \end{enumerate}
 \bigskip
 \item[]
-Issues: Small-sample size, multiple change points/elbows
+Issues: Small-sample size, multiple change points (elbows)
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Back to illustration}
 \begin{itemize}
-\item
+\item[]
 Recall our simulation study and BIC solution:
 \begin{minipage}{0.45\linewidth}
 \includegraphics[width=\linewidth]{../Olson/Figures/unif/unclustered.pdf}
 \begin{center}
-Raw, unclustered data
+Unclustered data
 \end{center}
 \end{minipage}
 \hfill
@@ -461,9 +586,6 @@ Raw, unclustered data
 BIC solution ($K = 5$)
 \end{center}
 \end{minipage}
-\bigskip
-\item
-How does our merging technique fare?
 \end{itemize}
 \end{frame}
 
@@ -500,16 +622,17 @@ How does our merging technique fare?
 
 \begin{frame}\frametitle{Illustation: Entropy regression}
 \begin{center}
-\includegraphics[width=\linewidth]{../Olson/Figures/unif/entropy_shortened.pdf}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/total_entropy.pdf}
 \end{center}
 \begin{itemize}
 \item
-Both plots indicate $K = 2$ as a reasonable change point
+Indicates $K = 2$ as a reasonable change point
 \end{itemize}
 
 \end{frame}
 
-\begin{frame}\frametitle{Application: Graft-vs-host disease}
+\section{Application: Graft-vs-host disease}
+\begin{frame}\frametitle{Graft-vs-host disease}
 \begin{itemize}
 \item[]
 \alert{Graft-vs-host disease:} Tissue attacks the host after transplant
@@ -536,17 +659,17 @@ Key: look at \textbf{cell populations} -- groups of cells with similar genetic \
 \begin{frame}\frametitle{Previous study}
 \begin{itemize}
 \item[]
-\alert{Brinkman et al. (2007):} 31 patients with \& without disease
+\alert{Brinkman et al. (2007):} 31 patients total, some with disease, some without
 \bigskip
 \item[]
 \alert{Their goal:} look for patterns in white blood cells
 \bigskip
 \item[]
-They measured concentrations of \emph{4 molecules} within each cell: \\CD3, CD4, CD8, \& CD8$\beta$
-\bigskip
-\item[]
-\alert{Findings:}
-\medskip
+They measured concentrations of \emph{4 molecules} within each cell, called CD3, CD4, CD8, \& CD8$\beta$
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Findings}
 \begin{itemize}
 \item
 \emph{Susceptibility to disease} strongly correlates with cell populations that contain \emph{high levels of CD3, CD4, \& CD8$\beta$}
@@ -554,27 +677,21 @@ They measured concentrations of \emph{4 molecules} within each cell: \\CD3, CD4,
 \item
 Identified specific cell populations using physical/chemical properties of cells
 \end{itemize}
-\end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Case study: Objectives}
+\begin{frame}\frametitle{Our objectives}
 \begin{itemize}
-
 \item[]
-Baudry et al.:
-\medskip
-\begin{itemize}
-\item
 \alert{Dataset:}
  $\approx 7,000$ blood cell measurements from 1 patient \emph{without} graft-vs-host disease
- \bigskip
- \item
-\alert{Goal:} cluster cell measurements into cell populations using BIC \& merging method
-
-\end{itemize}
 \bigskip
 \item[]
-Assume Gaussian mixture models with general $\Sigma_k$
+\alert{Goal:} cluster cell measurements into cell populations using BIC \& merging method
+\bigskip
+\begin{itemize}
+\item
+Assume general $\Sigma_k$
+\end{itemize}
 \bigskip
 \item[]
 Compare to manual results of previous study:
@@ -586,20 +703,26 @@ Show that control patient \emph{does not} have cell populations with high levels
 \end{itemize}
 \end{frame}
 
+\begin{frame}\frametitle{Scatterplot of data}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{scatter.png}
+\end{center}
+\end{frame}
+
 \begin{frame}\frametitle{Strategy}
 \begin{itemize}
 \item
-\emph{Cluster cells} into cell populations based on the 4 molecules
+\alert{Cluster cells into cell populations} based on their 4 molecule levels
 \bigskip
 \item
-Use \emph{threshold} to classify each group has having ``high'' or ``low'' levels of each molecule
+Use \alert{threshold} to classify each group has having ``high'' or ``low'' levels of each molecule
 \bigskip
 \item
-Plot concentrations of CD4 vs CD8$\beta$, \& \emph{only display groups with high levels of CD3} on plot
+Plot concentrations of CD4 vs CD8$\beta$, \& \alert{only display groups with high levels of CD3} on plot
 \begin{itemize}
 \bigskip
 \item
-This allows us to identify cell populations with high levels of CD3, CD4, \& CD8$\beta$
+Allows us to identify cell populations with high levels of CD3, CD4, \& CD8$\beta$
 \end{itemize}
 \end{itemize}
 \end{frame}
@@ -612,47 +735,67 @@ This allows us to identify cell populations with high levels of CD3, CD4, \& CD8
 \end{itemize}
 \begin{center}
 \begin{minipage}{0.4\linewidth}
-\includegraphics[width=\linewidth]{BIC_control.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d52_raw_2/merged_13_CD3_CD8beta.pdf}
 \begin{center}
 BIC solution
 \\
-$K = 10$
+$K = 13$
 \\
 Entropy $ = 3733$
 \end{center}
 \end{minipage}
 \hfill
-\uncover<2->{
 \begin{minipage}{0.4\linewidth}
-\includegraphics[width=\linewidth]{Combined_control.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d52_raw_2/merged_10_CD3_CD8beta.pdf}
 \begin{center}
 Merged solution
 \\
-$K = 3$
+$K = 10$
 \\
 Entropy $= 58$
 \end{center}
 \end{minipage}
-}
 \end{center}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}\frametitle{Summary}
+\begin{itemize}
+\item[]
+BIC estimates \# of components well 
+\bigskip
+\item[]
+ICL uses entropy to identify \# of groups well
+\bigskip
+\item[]
+Baudry et al. combine their strengths:
+\begin{itemize}
+\bigskip
+\item
+Start with components from $\estim K_\text{BIC}$
+\bigskip
+\item
+Use entropy to iteratively merge components
+\end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Discussion}
 \begin{itemize}
 \item[]
-BIC estimates \# components well 
+\alert{Key idea:} Allow submixtures as components, so that $\left(\# \text{ mixture components}\right)$ 
+$\ne$ 
+$\left(\# \text{ clusters} \right)$
 \bigskip
 \item[]
-ICL uses entropy to identify \# clusters well
+Honest density representations, much lower entropy
 \bigskip
 \item[]
-Combine strengths by starting with $\estim K_\text{BIC}$ \& merging clusters to minimize entropy
+Departs from model-based clustering, losing some of the appeal
 \bigskip
 \begin{itemize}
 \item
-Key idea: Allow submixtures as components, so that $\left(\# \text{ mixture components}\right)$ 
-$\ne$ 
-$\left(\# \text{ clusters} \right)$
+Cannot choose $K$ as cleanly
 \end{itemize}
 \end{itemize}
 \end{frame}
@@ -669,7 +812,14 @@ Graft-versus-Host Disease,'' Biology of Blood and Marrow Transplantation, 13, 69
 Clustering,'' Journal of the American Statistical Association, 93, 294-302. 
 \end{frame}
 
-\begin{frame}\frametitle{Conditional probabilities and related quantities}
+\begin{frame}
+\begin{center}
+\Large
+Questions?
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Estimating $\estim z_{ik}$}
 \begin{itemize}
 \item[]
 Conditional probabilities:
@@ -684,12 +834,6 @@ with $\phi_k = $ $k$th Gaussian mixture density
 MAP estimates:
 \ba
 \estim z_{ik} := \ind{ \argmax_{1 \le j \le K} t_{ij}(\estim\theta_K) = k }
-\ea
-\item[]
-Shannon entropy:
-\ba
-\text{Entropy}(K) = - \sum_{i=1}^n \sum_{k=1}^K
-	t_{ik}(\estim\theta_K) \log t_{ik}(\estim\theta_K)
 \ea
 \end{itemize}
 \end{frame}
@@ -719,7 +863,7 @@ Merged solution for $K = 2$
 \end{minipage}
 \hfill
 \begin{minipage}{0.45\linewidth}
-\includegraphics[width=\linewidth]{../Olson/Figures/unif/ICL_contour.pdf}
+\includegraphics[width=\linewidth]{../Olson/Figures/unif/ICL2_contour.pdf}
 \begin{center}
 ICL solution ($K = 2$)
 \end{center}
@@ -731,7 +875,7 @@ ICL solution ($K = 2$)
 \alert{NOTE}: Only CD3-positive clusters are shown
 \begin{center}
 \begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{ICL_positive.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d51_raw/ICL7_CD3_CD8beta.pdf}
 \begin{center}
 ICL solution
 \\$K = 9$
@@ -740,18 +884,18 @@ ICL solution
 \end{minipage}
 \hfill
 \begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{BIC_positive.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d51_raw/merged_15_CD3_CD8beta.pdf}
 \begin{center}
 BIC solution
 \\
-$K = 12$
+$K = 13$
 \\
-Ent = 4782
+Ent = 6251
 \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{Combined_positive.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d51_raw/merged_12_CD3_CD8beta.pdf}
 \begin{center}
 Merged solution
 \\
@@ -767,35 +911,35 @@ Ent = 1478
 \alert{NOTE}: Only CD3-positive clusters are shown
 \begin{center}
 \begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{ICL_control.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d52/ICL4_CD3_CD8beta.pdf}
 \begin{center}
 ICL solution
 \\
-$K = 7$
+$K = 312$
 \\
 Ent $= 1901$
 \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{BIC_control.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d52/merged_13_CD3_CD8beta.pdf}
 \begin{center}
 BIC solution
 \\
-$K = 10$
+$K = 4330$
 \\
 Ent = 3733
 \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}{0.3\linewidth}
-\includegraphics[width=\linewidth]{Combined_control.png}
+\includegraphics[width=\linewidth]{../Olson/Figures/d52/merged_4_CD3_CD8beta.pdf}
 \begin{center}
 Merged solution
 \\
-$K = 3$
+$K = 4$
 \\
-Ent = 58
+Ent = 144
 \end{center}
 \end{minipage}
 \end{center}
