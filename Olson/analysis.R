@@ -16,10 +16,6 @@ runAnalysis(d52_raw,
             model_names="VVV",
             plot_types="4d"
             )
-runAnalysis(unif_dat[, 1:2],
-            model_names="VII",
-            output_dir="Figures/unif/",
-            contour_levels=1/10)
 d_tmp <- rbind(
                x=cbind(runif(200, 0, 2),
                      runif(200, 1.1, 2)),

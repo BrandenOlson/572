@@ -437,7 +437,7 @@ runAnalysis <- function(working_dat,
     # Plot unlabeled data
     point_size <- ifelse(plot_types == "4d", 0.1, 0.5)
     pdf(paste0(output_dir, "unclustered.pdf"), width=6, height=6)
-    plot(working_dat, pch=19, asp=1, cex=point_size, cex.axis=2, cex.lab=2)
+    plot(working_dat, pch=19, asp=1, cex=point_size, cex.axis=2, cex.lab=2, xlab="x", ylab="y")
     dev.off()
 
     if(missing(init_params)) {
