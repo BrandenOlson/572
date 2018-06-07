@@ -1,4 +1,4 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{21}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -63,20 +63,37 @@ C.~Fraley.
 \newblock Technical Report 311, Department of Statistics, University of
   Washington, October 1996.
 
-\bibitem[Fraley and Raftery(1998)]{Fraley98}
-C.~Fraley and A.E. Raftery.
-\newblock How many clusters? {A}nswers via model-based cluster analysis.
-\newblock \emph{The Computer Journal}, 41:\penalty0 578--588, 1998.
+\bibitem[Gormley and Murphy(2011)]{Gormley11}
+I.C. Gormley and T.B. Murphy.
+\newblock \emph{Mixture of Experts Modelling with Social Science Applications}.
+\newblock Wiley-Blackwell, 2011.
+\newblock ISBN 9781119995678.
 
-\bibitem[Hartigan and Wong(1978)]{Hartigan78}
-J.A. Hartigan and M.A. Wong.
-\newblock Algorithm {AS} 136: a $k$-means clustering algorithm.
-\newblock \emph{Applied Statistics}, 28:\penalty0 100--108, 1978.
+\bibitem[Hans-Peter et~al.(2011)Hans-Peter, Peer, Jorg, and Arthur]{Hans11}
+K.~Hans-Peter, K.~Peer, S.~Jorg, and Z.~Arthur.
+\newblock Density-based clustering.
+\newblock \emph{WIREs Data Mining and Knowledge Discovery}, 1:\penalty0
+  231--240, 2011.
 
-\bibitem[Kaufman and Rousseeuw(1990)]{Kaufman90}
-L.~Kaufman and P.J. Rousseeuw.
-\newblock \emph{Finding Groups in Data}.
-\newblock Wiley, New York, 1990.
+\bibitem[Hennig(2010)]{Hennig10}
+C.~Hennig.
+\newblock Methods for merging {G}aussian mixture components.
+\newblock \emph{Advances in Data Analysis and Classification}, 4:\penalty0
+  3--34, 2010.
+
+\bibitem[Ho et~al.(2012)Ho, Lin, Chang, Haase, Huang, and Pyne]{Ho12}
+H.J. Ho, T.I. Lin, H.H. Chang, S.B. Haase, S.~Huang, and S.~Pyne.
+\newblock Parametric modeling of cellular state transitions as measured with
+  flow cytometry.
+\newblock In I.~Mandoiu, T.~Przytycka, and S.~Rajasekaran, editors, \emph{First
+  IEEE International Conference on Computational Advances in Bio and medical
+  Sciences}, volume~13, 2012.
+
+\bibitem[Huang et~al.(2014)Huang, Poland, Wight, Jackson, and Tinker]{Huang14}
+Y.-F. Huang, J.A. Poland, C.P. Wight, E.W. Jackson, and N.A. Tinker.
+\newblock Using genotyping-by-sequencing ({GBS}) for genomic discovery in
+  cultivated oat.
+\newblock \emph{PLOS One}, 9\penalty0 (7):\penalty0 e102448, 2014.
 
 \bibitem[Li(2005)]{Li05}
 J.~Li.
