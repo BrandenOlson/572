@@ -46,7 +46,6 @@ initializeEM <- function(K,
         mu_init <- rep(NA, K) %>% as.list
         kmeans_fit <- kMeans(K, dat)
         p_init <- rep(1/K, K) 
-            # For some reason, using kmeans_fit$ps doesn't work as well
         mu_init <- kmeans_fit$means
         cov_init <- kmeans_fit$covariances
 
@@ -239,13 +238,4 @@ mbhc <- function(K,
     means <- means[zs %>% unique]
     covs <- covs[zs %>% unique]
     return(list(means, covs))
-}
-
-# Try a model-based hierarchical clustering initialization
-
-if(FALSE) {
-K <- 6
-# theta_init <- mbhc(K, dat=d1)
-theta_mle <- runEM(K=K, dat=d1)
-theta_mle %>% plotDensities(dat=d1)
 }
