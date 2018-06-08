@@ -578,6 +578,7 @@ Thus, we set the ground truth for Li's method to $K = 3$.
 Figure \ref{Example4_1} shows the unlabeled data in (a), the BIC solution with $K = 4$ in (b), and the $K = 3$ merged solution in (c).
 We see that our merging routine identifies the desired group structure when merging to $K = 3$.
 Conversely, the method of \cite{Li05} merges the bottom two clusters (colored as cyan and blue) as reported by \cite{Baudry10}.
+Table \ref{Table41} lists inferred $K$ values and computed entropy values for each solution.
 
 \begin{figure}
 \begin{center}
@@ -632,6 +633,7 @@ The BIC chooses $K = 3$ components, each corresponding to a horizontal or diagon
 Applying the merging solution gives the $K = 2$ clustering that matches our notion of the true groups, with the labeled solution shown in figure \ref{Example4_2} (e -- f).
 In contrast, Li's merging solution for $K = 2$ yields a clustering where the two legs of the cross closest to the vertical pillar are merged with the vertical pillar to form a group, leaving the other two legs of the cross as the second group.
 This solution does not correspond to the assumed ground truth, with the clusters not being particularly well-separated.
+Table \ref{Table42} lists inferred $K$ values and computed entropy values for each solution.
 
 From examples \ref{three} and \ref{four}, \cite{Baudry10} contend that their method outperforms that of \cite{Li05}.
 Sidestepping the need to know $K$ beforehand provides a broader range of candidate applications.
@@ -640,26 +642,26 @@ In addition, \cite{Li05} requires multiple runs of the EM algorithm, whereas \ci
 
 \subsection{Flow cytometry study}\label{GvHD}
 Our final example examines datasets from \cite{Brinkman07}.
-These data comprise samples from a flow cytometry experiment in which white blood cell readings were collected from patients with and without graft-versus-host disease (GvHD).
-GvHD occurs in stem cell transplant recipients when cells in the transplanted tissue attack several of the recipient's organs and tissues including the skin, gut, and liver.
+These data comprise samples from a flow cytometry experiment in which white blood cell readings were collected from patients undergoing stem cell transplant surgery.
+Some of these patients experienced a medical complication known as graft-versus-host disease (GvHD), which occurs when cells in the transplanted tissue attack several of the recipient's organs and tissues such as the skin, gut, and liver.
 This disease presents perhaps the biggest medical challenge in the field of tissue transplants.
 Thus, it behooves us to ask: can we screen for GvHD susceptibility well before the procedure to prevent or mitigate its effects?
 
-To address this question, \cite{Brinkman07} looked at a multitude of biomarker readings from 31 patients undergoing tissue transplants; 21 patients were eventually diagnosed with GvHD, 3 were determined not to have developed GvHD, and the remaining patients were inconclusive for various reasons.
-They identified a significant correlation of GvHD susceptibility with the presence of cell subpopulations containing high levels of CD3, CD4, and CD8$\beta$ biomarkers, hereby referred to as CD3$^+$ CD4$^+$ CD8$\beta^+$ cell populations.
-Furthermore, they used a manual gating analysis to group the measurements of CD3, CD4, CD8, and CD8$\beta$ of thousands of cells in each patient into cell subpopulations using physical and chemical properties.
+To address this question, \cite{Brinkman07} looked at a multitude of biomarker readings from 31 patients undergoing tissue transplants; 21 patients were eventually diagnosed with GvHD, 3 were not diagnosed with GvHD, and the remaining patients were inconclusive for various reasons.
+They identified a significant correlation of GvHD susceptibility with the presence of cell subpopulations containing high levels of CD3, CD4, and CD8$\beta$ biomarkers, hereby referred to as CD3$^+$CD4$^+$CD8$\beta^+$ cell populations.
+Furthermore, they used a manual gating analysis to group the measurements of CD3, CD4, CD8, and CD8$\beta$ levels from thousands of cells in each patient into cell subpopulations based on physical and chemical properties.
 The gating included CD8 on top of the three biomarkers of interest as these four biomarkers constitute all of the T cell helper/suppressor cells used in the experiment, whose collective expression levels determine the underlying biological populations.
-The gating analysis identified six CD3$^+$ cell subpopulations in most GvHD-positive patients , three of which were also 
-CD3$^+$ CD4$^+$ CD8$\beta^+$ cell subpopulations
+The gating analysis identified six CD3$^+$ cell subpopulations, three of which were also 
+CD3$^+$CD4$^+$CD8$\beta^+$, in most patients who developed GvHD.
 
-\cite{Baudry10} look at two datasets from the study, corresponding to one ``positive'' patient who eventually developed GvHD and one ``control'' patient who did not.
+Following \cite{Baudry10}, we look at two datasets from the study, corresponding to one ``positive'' patient who eventually developed GvHD and one ``control'' patient who did not.
 The goal is to cluster the data into cell subpopulations using the BIC, ICL, and merging methods, and compare the results to those of \cite{Brinkman07}.
-They assume a Gaussian mixture model with general covariances and apply each of the clustering techniques.
-Following the strategy of \cite{Lo08}, a cell subpopulation cluster $c$ is considered positive in a biomarker $B$ if the estimated mean of the component is greater than 280 units in the $B$ dimension.
-That is, if we estimate $\estim\mu_c = \left(\estim \mu_{c, \text{CD3}}, \estim \mu_{c, \text{CD4}}, \estim\mu_{c, \text{CD8}}, \estim\mu_{c, \text{CD8$\beta$}}\right) \in \reals^4$, then $c$ is considered CD3$^+$, for example, if $\estim\mu_{c, \text{CD3}} > 280$.
-We can apply this threshold for each of the 4 biomarkers, and for each cluster.
-To visualize CD3$^+$ CD4$^+$ CD8$\beta^+$ clusters, we can plot the labeled CD4 vs CD8$\beta$ readings, with horizontal and vertical lines corresponding to the 280 threshold, and then only display CD3$^+$ groups, i.e. clusters with $\estim\mu_{c, \text{CD3}} > 280$.
-This strategy allows us to capture CD3$^+$ CD4$^+$ CD8$\beta^+$ populations as those which appear in the upper-right box of the CD4 vs CD8$\beta$ plot.
+We assume Gaussian mixture models with general covariances and apply each of the clustering techniques.
+Following the strategy of \cite{Lo08}, we consider a cell subpopulation cluster $c$ to be positive in a biomarker $B$ if the estimated mean of the component density is greater than 280 units in the $B$ dimension.
+That is, if we estimate $\estim\mu_c = \left(\estim \mu_{c, \text{CD3}}, \estim \mu_{c, \text{CD4}}, \estim\mu_{c, \text{CD8}}, \estim\mu_{c, \text{CD8$\beta$}}\right) \in \reals^4$, then $c$ is considered CD3$^+$, for example, if $\estim\mu_{c, \text{CD3}} \ge 280$.
+We can apply this threshold for each of the four biomarkers, for each cluster.
+To visualize CD3$^+$CD4$^+$CD8$\beta^+$ clusters, we plot CD4 values versus CD8$\beta$ values colored by cluster, with vertical and horizontal lines corresponding to the 280 threshold, and then only display CD3$^+$ clusters, i.e. clusters with $\estim\mu_{\text{CD3}} > 280$.
+This strategy allows us to capture CD3$^+$CD4$^+$CD8$\beta^+$ subpopulations as those which appear in the upper-right box of the CD4 vs CD8$\beta$ plot.
 Note that $\estim\mu_c$ can be explicitly computed via \eqref{mixturemean}.
 
 \begin{figure}
@@ -674,16 +676,16 @@ Note that $\estim\mu_c$ can be explicitly computed via \eqref{mixturemean}.
 	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d51_raw_2/merged_8_CD3_CD8beta.pdf}
 }
 \end{center}
-\caption{Clusterings of cell readings form a GvHD-positive patient using BIC, ICL, and the merging procedure in example \ref{GvHD}. The CD4 and CD8$\beta$ dimensions are shown, with only CD3$^+$ groups displayed. The CD8 dimension is not shown.}
+\caption{Clusterings of cell readings form a GvHD-positive patient using BIC, ICL, and the merging procedure in example \ref{GvHD}. The CD4 and CD8$\beta$ dimensions are shown on the $x$- and $y$-axes, respectively, with only CD3$^+$ clusters displayed. The CD8 dimension is not shown.}
 \label{positive}
 \end{figure}
 
-We first examine the ``positive'' dataset from the patient who developed GvHD post-surgery.
-The BIC solution in figure \ref{positive} (a) chooses $K = 16$ components, six of which are deemed CD3$^+$, and three of which are further deemed CD3$^+$ CD4$^+$ CD8$\beta^+$.
-This result is consistent with the results of \cite{Brinkman07}.
-The ICL solution in figure \ref{positive} (b) chooses $K = 7$ and identifies three CD3$^+$ groups, only one of which is CD3$^+$ CD4$^+$ CD8$\beta^+$ (plotted with black points).
-The merged solution retains the same group structure as the BIC solution until $K = \estim K_\text{ICL} = 7$, when the bottom right cluster becomes CD3$^-$ and is no longer displayed (as in the ICL solution).
-We display the merged solution for $K = 8$ in figure \ref{positive} (c), as this is the last solution in the decreasing sequence which exhibits the biologically consistent cluster structure in the BIC solution.
+We first examine the dataset from the positive patient.
+The BIC solution in figure \ref{positive} (a) chooses $K = 16$ components, six of which are deemed CD3$^+$, and three of which are further deemed CD3$^+$CD4$^+$CD8$\beta^+$.
+This agrees with the results of \cite{Brinkman07}.
+The ICL solution in figure \ref{positive} (b) chooses $K = 7$ and identifies three CD3$^+$ groups, two of which is CD3$^+$ CD4$^+$ CD8$\beta^+$ (the red and black clusters).
+The merged solution retains the same group structure as the BIC solution until $K = \estim K_\text{ICL} = 7$, when the bottom right cluster becomes CD3$^-$ (i.e., not CD3$^+$) and is no longer displayed (as in the ICL solution).
+We display the merged solution for $K = 8$ in figure \ref{positive} (c), as this is the last solution in the decreasing sequence which exhibits the biologically consistent group structure in the BIC solution.
 It also possesses significantly smaller entropy (1067 units) than both the BIC (6750 units) and ICL (3382 units) solutions.
 We can make more sense of the clustering sequence by examining the entropy plots in figure \ref{Entropy5_1}.
 \begin{figure}
@@ -694,7 +696,7 @@ We can make more sense of the clustering sequence by examining the entropy plots
 \subfloat[]{
 	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d51_raw_2/diff_entropy.pdf}
 }
-\\
+\\ \vspace{-1em}
 \subfloat[]{
 	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d51_raw_2/cum_count.pdf}
 }
@@ -706,21 +708,12 @@ We can make more sense of the clustering sequence by examining the entropy plots
 \label{Entropy5_1}
 \end{figure}
 All four of the plots lead to a change point of $K = 9$.
-Thus, we conclude that either choice of $K = 8$ or $K = 9$ is an appropriate selection for the dataset, and match the biological expectations given by \cite{Brinkman07}.
+Thus, we conclude that either the $K = 8$ or $K = 9$ solutions are appropriate, and match the biological expectations given by \cite{Brinkman07}.
+Table \ref{Table51} lists inferred $K$ values and computed entropy values for each solution.
 
-Next we examine the ``control'' dataset from the patient who did not develop GvHD.
-The data and clusterings from each technique are shown in figure \ref{control}.
-The BIC chooses $K = 11$, with three clusters considered to be CD3$^+$, one of which is also CD3$^+$ CD4$^+$ CD8$\beta^+$ (the black cluster in figure \ref{control} (a)).
-This is inconsistent with the results of \cite{Brinkman07}, since the control patient should not have any such cell subpopulations.
-The ICL chooses $K = 4$, with one cluster spanning much of the CD4-CD8$\beta$ plane (the black cluster in figure \ref{control} (b)).
-It is more difficult to discern from the plot whether this is CD3$^+$ CD4$^+$ CD8$\beta^+$, and in fact, \cite{Baudry10} found an ICL solution ($K = 7$) which did contain a CD3$^+$ CD4$^+$ CD8$\beta^+$ population.
-Hence, our ICL result should be considered inconclusive at best.
-The merged solution for $K = 4$ displays two CD3$^+$ groups like the ICL, but zero CD3$^+$ CD4$^+$ CD8$\beta^+$ populations, which matches the biological expectations from \cite{Brinkman07}.
-It also contains much lower entropy (145 units) than the BIC (4330 units) and ICL (313 units) solutions.
-Entropy plots are shown in figure \ref{Entropy5_2}.
-The first plot selects $K = 6$ as a change point, whereas the other three plots seem to select $K = 5$ as a change point.
-From these plots as well as the ICL solution, $K = 4$, 5, or 6 comprise reasonable candidates for the merged solution, all of which are qualitatively similar and match the results of \cite{Brinkman07}.
 
+Next we examine the dataset from the control patient.
+The BIC solution in figure \ref{control} (a) chooses $K = 13$, with three CD3$^+$ clusters, one of which is also CD3$^+$CD4$^+$CD8$\beta^+$ (the black cluster).
 \begin{figure}
 \begin{center}
 \subfloat[BIC solution, $K = 13$]{
@@ -734,24 +727,33 @@ From these plots as well as the ICL solution, $K = 4$, 5, or 6 comprise reasonab
 }
 \end{center}
 \caption{Clusterings of cell readings form a GvHD-negative (control) patient using BIC, ICL, and the merging procedure in example \ref{GvHD}. The CD4 and CD8$\beta$ dimensions are shown, with only CD3$^+$ groups displayed. The CD8 dimension is not shown.}
-\label{positive}
 \label{control}
 \end{figure}
+This is inconsistent with \cite{Brinkman07}, since the control patient should not have any such cell subpopulations.
+The ICL solution in figure \ref{control} (b) chooses $K = 4$, with one cluster spanning much of the CD4-CD8$\beta$ plane (the black cluster).
+It is more difficult to discern from the plot whether this cluster is CD3$^+$CD4$^+$CD8$\beta^+$, and in fact, \cite{Baudry10} found an ICL solution ($K = 7$) which did contain a CD3$^+$CD4$^+$CD8$\beta^+$ cluster.
+Hence, our ICL result should be considered inconclusive at best.
+The merged solution for $K = 4$ in figure \ref{control} (c) yields two CD3$^+$ groups like the ICL, but zero CD3$^+$CD4$^+$CD8$\beta^+$ populations, which agrees with \cite{Brinkman07}.
+It also contains much lower entropy (145 units) than the BIC (4330 units) and ICL (313 units) solutions.
+Entropy plots are shown in figure \ref{Entropy5_2}.
+There are disagreements over the suggested change point, perhaps explained by plots (a -- c) showing evidence of a two- or three-segment fit.
+From these plots as well as the ICL solution, the $K = 4, \dotsc, 8$ merged solutions comprise plausible candidates.
+Table \ref{Table52} lists inferred $K$ values and computed entropy values for each solution.
 
 \begin{figure}
 \begin{center}
 \subfloat[]{
-	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52_raw_2/total_entropy.pdf}
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52/total_entropy.pdf}
 }
 \subfloat[]{
-	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52_raw_2/diff_entropy.pdf}
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52/diff_entropy.pdf}
 }
-\\
+\\ \vspace{-1em}
 \subfloat[]{
-	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52_raw_2/cum_count.pdf}
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52/cum_count.pdf}
 }
 \subfloat[]{
-	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52_raw_2/norm_diff.pdf}
+	\includegraphics[width=0.4\linewidth]{../Olson/Figures/d52/norm_diff.pdf}
 }
 \end{center}
 \caption{Entropy plots for the GvHD-negative (control) patient in example \ref{GvHD}.}
@@ -760,30 +762,30 @@ From these plots as well as the ICL solution, $K = 4$, 5, or 6 comprise reasonab
 
 \section{Discussion}
 \cite{Baudry10} exploit the strengths of the BIC and ICL in a novel clustering procedure which merges components using an entropy criterion.
-While their method draws on techniques from model-based clustering, its strengths lie in transgressing the assumption that each component corresponds to one cluster.
-Instead, merging individual component densities into submixture densities themselves allows the number of clusters to be strictly smaller than the estimated number of mixture components.
+While their method draws on techniques from model-based clustering, its strengths lie in transgressing the assumption that each component corresponds to its own cluster.
+Instead, merging individual Gaussian components into submixtures themselves allows the number of clusters to be strictly smaller than the estimated number of mixture components.
 In this light, the approach of using merged components to represent clusters can be viewed as a density-based clustering technique, in which clusters are defined as areas of high density for some underlying density \citep{Hans11}.
 While the concept of merging components for clustering had already been established \citep{Hennig10}, the approach of \cite{Baudry10} has since been applied with success to several problems across multiple scientific disciplines \citep{Huang14, Ho12, Gormley11}. 
 
 We have implemented the procedure and assessed its performance on several simulated examples along with an example using flow cytometry data.
 It boasts competitive performance to the BIC and ICL methods, with particularly robust performance under model misspecification.
-Moreover, outputting a sequence of clusterings, rather than committing to a sole solution, allows the modeler to choose the result that best suits their situation.
+Moreover, outputting a sequence of clusterings rather than committing to a sole solution allows the modeler to choose the result that best suits their situation.
 For example, a cross-cluster can be viewed as two overlapping groups or one contiguous group; this can possibly be resolved using the sequence of merged clusterings equipped with scientific context.
-In addition, while the ICL attempts to incorporate both the likelihood fit and entropy into the clustering by packing them into a single criterion, the approach of \cite{Baudry10} better harnesses their individual contributions by incorporating them sequentially.
-This yielded a significantly lower entropy with respect to a given $K$ for each example we considered, compared to both the BIC and ICL approaches.
+Additionally, while the ICL attempts to incorporate both the likelihood fit and entropy into the clustering by packing them into a single criterion, the approach of \cite{Baudry10} better harnesses their individual contributions by treating them sequentially.
+This yielded a significantly lower entropy with respect to a given $K$ compared to both the BIC and ICL approaches for most of our examples.
 
 
 Nonetheless, the procedure does come with caveats.
 It begins with the BIC solution, which depends on a particular implementation of the EM algorithm (including tolerance and convergence criteria), which itself depends on a particular initialization scheme (which may or may not be deterministic).
 Hence, the procedure is highly sensitive to the initialization woes that accompany computing $\estim K_\text{BIC}$.
-Indeed, in most of our examples, the EM results from the two popular clustering packages, \texttt{mclust} and \texttt{MixMod}, yield different initial clusterings based on their respective initialization schemes.
+Indeed, in most of our examples, the EM results from the clustering packages \texttt{mclust} and \texttt{MixMod} yield different initial clusterings based on their respective implementations.
 While this often led to qualitatively similar clustering sequences in our examples, especially as $K$ continues to decrease, different initializations sometimes lead to very different conclusions.
-Thus, we suggest performing a sensitivity analysis in practice to assess the effects of the initialization, guided by likelihood and entropy values if needed.
+Thus, we suggest performing a sensitivity analysis in practice to assess the effects of the initialization, possibly guided by likelihood and entropy values.
 
 Furthermore, choosing $K$ from the sequence remains an unresolved problem with no satisfactory solution in sight.
 We have seen examples where simply using $\estim K_\text{ICL}$ is unreliable, as well as examples where inferred change points are indecisive.
 In addition, as the dimensionality of the data increases, it becomes very difficult to use visual or qualitative inspections of each clustering in the sequence to make a decision.
-Possible approaches to this problem include more sophisticated change point detection techniques, or invoking a posterior distribution over the clustering sequence, but specific directions remain unclear.
+Approaches to this problem may include more sophisticated change point detection techniques, or invoking a posterior distribution over the clustering sequence, but specific directions remain unclear.
 
  
 
