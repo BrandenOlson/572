@@ -284,14 +284,14 @@ Despite the advantages of model-based clustering, sometimes the distribution of 
 To address this, \cite{Baudry10} propose a hierarchical clustering technique which harnesses some of these advantages while allowing components to be Gaussian mixtures themselves. 
 The procedure starts with the model-based clustering solution chosen by BIC and iteratively merges components based on the entropy criterion underlying the ICL.
 This results in a sequence of clusterings for each $K$ in the set $\set{K_\text{min}, \dotsc, \estim K_\text{BIC}}$, from which the modeler can choose a representative based on several principles which we discuss below.
-In this way, \cite{Baudry10} exploit the respective strengths of the two criteria and overcome limitations of the Gaussian assumption.
+In this way, \cite{Baudry10} exploit the respective strengths of the two criteria and overcome the limitations of the Gaussian assumption.
 
 The algorithm is formalized as follows.
-For a given $K$, let $t_{ik} = t_{ik}\left(\estim\theta_K\right)$ denote the conditional probability that data point $\bx_i$ arose from component $k$.
-This probability is explicitly given by \eqref{tik} when each component is Gaussian.
+For a given $K$, let $t_{ik} = t_{ik}\left(\estim\theta_K\right)$ denote the conditional probability that $\bx_i$ belongs to cluster $k$.
+This probability is explicitly given by \eqref{tik} when each cluster is a Gaussian component.
 Then for any pair of clusters $k$ and $k'$, it is immediate that
 \begin{equation}\label{tik_union}
-t_{i, k\cup k'} = t_{ik} + t_{ik'}.
+t_{i, k\cup k'} = t_{ik} + t_{ik'}
 \end{equation}
 with the remaining $t_{ij}, j \not\in \set{k, k'}$, unchanged.
 Thus, the entropy contribution of an individual point $\bx_i$ with respect to the newly merged cluster $k \cup k'$ is
@@ -309,21 +309,21 @@ This induces a difference in overall entropy when merging $k$ and $k'$, yielding
 - \sum_{i=1}^n \left\{ t_{ik} \log t_{ik} + t_{ik'} \log t_{ik'} \right\}.
 \end{equation}
 Thus, at each iteration, the algorithm merges clusters $(k, k') = \argmax_{1 \le j, \ell \le K} \Delta\text{Ent}(j, \ell|K)$, reducing the number of clusters to $K - 1$ and giving rise to new estimates of $t_{ik}, 1 \le k \le K - 1$.
-The relationship \eqref{tik_union} holds when the components $k$ and $k'$ are Gaussian mixtures, as the conditional probability that $\bx_i$ arose from a mixture component $k$ is simply the sum of the conditional probabilities for the individual Gaussian components of $k$.
+The relationship \eqref{tik_union} holds when the components that comprise clusters $k$ and $k'$ are Gaussian mixtures, as the conditional probability that $\bx_i$ arose from a mixture component $k$ is simply the sum of the conditional probabilities for the individual Gaussian components of $k$.
 More details of this methodology are described in Appendix B.
 
 Given the sequence of clusterings, one may wish to choose the ``best'' clustering for the problem at hand.
-The authors suggest several approaches for selecting $K$, including:
+The authors suggest several approaches for selecting $K$ and its corresponding solution, including:
 \begin{enumerate}
 \item
 choosing $K$ substantially either using scientific background or by visualizing the clusters;
 \item
-setting $K = K_\text{ICL}$, since the ICL criterion tends to choose the number of clusters effectively;
+using the merged solution with $K = \estim K_\text{ICL}$ components, since the ICL tends to choose the number of groups effectively;
 \item
 regressing entropy-based quantities on $K$, and identifying a change point or ``elbow'' to indicate when the entropy has leveled out.
 \end{enumerate}
 Concerning the third suggestion, \cite{Baudry10} describe four types of entropy relationships for plotting and regression.
-The first two plots concern the relationships of total entropy and differences in entropy as $K$ decreases through the merging process.
+The first two plots involve the total entropy and consecutive differences in entropy as $K$ decreases through the merging process.
 Because a cluster merge involving a large number of observations will lead to a larger difference in entropy, the third plot attempts to alleviate this bias so that a merge's effectiveness relies only on the corresponding increase in separation.
 In particular, it displays the total entropy versus the cumulative number of observations involved in the merging process.
 The fourth plot examines the normalized change in entropy,
@@ -334,9 +334,9 @@ The fourth plot examines the normalized change in entropy,
 where $k\cup k'$ is the newly merged cluster from previously separate clusters $k$ and $k'$ in the $K + 1$ solution.
 Thus, we can automatically infer $K$ by estimating the change points, or elbows, in any of these plots.
 
-For the two plots of total entropy, we follow \cite{Baudry10} and employ a piecewise linear regression by minimizing the total sum of squared error (SSE).
+For the two plots involving total entropy, we follow \cite{Baudry10} and employ a piecewise linear regression by minimizing the total sum of squared error (SSE).
 Specifically, we iterate over each possible change point $c \in \set{2, \dotsc, \estim K_\text{BIC} - 1}$, perform least squares regressions separately on $\set{1, \dotsc, c}$ and $\set{c, \dotsc, K}$, compute SSE$(c)$, and choose $\estim c = \argmin_c \text{SSE}(c)$.
-While this piecewise fit is well-defined, it may not be optimal if the sample size of $K$-values is small (for example, if $c = 2$, we trivially interpolate a line through the values for $K = 1, 2$), and standard errors may be unavailable.
+While this piecewise fit is well-defined if $\estim K_\text{BIC} \ge 3$, interpretability is lost if the sample size of $K$-values is small (for example, if $c = 2$, we trivially interpolate a line through the values for $K = 1, 2$), and standard errors may be unavailable.
 Moreover, a piecewise regression may identify multiple elbows, implying a hierarchical nature of clustering.
 One can still automatically choose $K$ in this case, such as always choosing the smallest such breaking point, or taking the rounded midpoint.
 Nonetheless, a general method to automatically select $K$ in every situation 	appears difficult, and the modeler must exercise judgment by incorporating context and subjective qualities of the different clusterings.
