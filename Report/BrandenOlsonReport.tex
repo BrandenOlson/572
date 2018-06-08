@@ -344,8 +344,8 @@ Nonetheless, a general method to automatically select $K$ in every situation 	ap
 \section{Results}
 \cite{Baudry10} illustrate their method with several simulation studies and apply it to real datasets from a flow cytometry experiment.
 We reproduce each of these experiments below, commenting on differences in our results when they arise.
-Each Gaussian mixture model was fit using the popular \texttt{mclust} package, which allows selection of $K$ based on both the BIC and ICL criteria.
-Although a custom implementation of the EM algorithm has been created for completeness, we use \texttt{mclust} for our analyses due to its highly involved and specialized algorithms for both the initialization and main steps of the EM algorithm, and includes efficient versions of the procedure tailored to the many possible covariance assumptions \citep{Scrucca16, Fraley96}.
+Each Gaussian mixture model was fit using the popular \texttt{mclust} package, which allows selection of $K$ based on both the BIC and ICL criteria, unless otherwise noted.
+Although a custom implementation of the EM algorithm has been created for completeness and exploration, we use \texttt{mclust} for our analyses due to its highly involved and specialized algorithms for both the initialization and main steps of the EM algorithm, as it includes efficient versions of the procedure tailored to the many possible covariance assumptions \citep{Scrucca16, Fraley96}.
 
 \subsection{Gaussian mixture with overlapping components}\label{one}
 Our first example simulates from a mixture of bivariate Gaussian densities with six components.
@@ -377,16 +377,16 @@ The mixture proportions of the components in the lower cross were $1/10$ each, a
 }
 \end{center}
 \caption{
-The unclustered data as well as labels and contours corresponding to the BIC, ICL, and the first three merged solutions for example \ref{one}. Note that the BIC and $K = 6$ merged solution coincide by design.
+The unclustered data as well as labels and contours corresponding to the BIC, ICL, and merged solutions for example \ref{one}. Note that the BIC and $K = 6$ merged solution coincide by design.
 }
 \label{Example1}
 \end{figure}
 
 Gaussian mixture models with general covariance structure were fit to these data for $K = 1, \dotsc, 12$.
-The BIC selected $\estim K_{\text{BIC}} = 6$, the true number of components, and the ICL selected $\estim K_{\text{ICL}} = 4$; the corresponding clustering solutions are shown in Figure \ref{Example1} (b-c), respectively.
-Next, the merging procedure was applied, starting with the BIC solution and terminating with the $K = 1$ solution.
-The clusterings for $K = $ 6, 5, and 4 are shown in Figure \ref{Example1} (d-f).
-A table of inferred $K$ values and computed entropy values for each solution is shown in table \ref{Table1}.
+The BIC selected $\estim K_{\text{BIC}} = 6$, the true number of components, and the ICL selected $\estim K_{\text{ICL}} = 4$, the number of nonoverlapping groups; the corresponding clustering solutions are shown in Figure \ref{Example1} (b-c), respectively.
+Next, the merging procedure was applied, starting with the BIC solution and terminating with the $K = 4$ solution.
+These clusterings are shown in Figure \ref{Example1} (d-f).
+Table \ref{Table1} lists inferred $K$ values and computed entropy values for each solution.
 This example illustrates the dilemma of model-based clustering, because while there are six true components, there are arguably four ``groups'' in terms of contiguity and well-separatedness.
 An advantage of the merging technique is that it provides a satisfactory solution for both the $K = 6$ and $K = 4$ cases, with the $K = 4$ solution having a more honest density representation than the ICL solution.
 \begin{figure}
@@ -411,10 +411,10 @@ An advantage of the merging technique is that it provides a satisfactory solutio
 
 
 Next, we illustrate the entropy regression methodology via the four plots in figure \ref{Entropy1}.
-The first displays the total entropy of the clustering versus the number of components $K$, as well as two line segments corresponding to the piecewise regression described in the Methodology section.
-The second plot displays the difference in entropy when merging from $K + 1$ to $K$ versus $K$.
-The third plot displays the total entropy versus the cumulative count of merged observations.
-The fourth plot displays $\Delta \text{Ent}_\text{norm}(K)$ versus $K$.
+The top left plot displays the total entropy of the clustering versus the number of components $K$, as well as the piecewise regression described in the Methodology section.
+The top right plot displays the difference in entropy, $\text{Ent}(K + 1) - \text{Ent}(K)$, versus $K$.
+The bottom left plot displays the total entropy versus the cumulative count of merged observations.
+The bottom right plot displays $\Delta \text{Ent}_\text{norm}(K)$ versus $K$.
 Each of these plots suggests $K = 4$ as a reasonable change point, and hence a reasonable choice for the number of clusters.
 
 \subsection{Gaussian mixture with overlapping components and restricted models}\label{two}
@@ -465,12 +465,13 @@ The unclustered data as well as labels and contours corresponding to the BIC, IC
 \end{figure}
 
 The BIC chooses $K = 11$, nearly twice the number of actual components used to generate the data.
-This is mostly due to the need to approximate the two diagonal Gaussian groups as a combination of three axis-aligned Gaussian densities.
+This is mostly due to the need to approximate each of the two slanted Gaussian groups as a combination of three axis-aligned components.
 The ICL also overestimates $K$ to be 7, and also has trouble delineating the true densities.
 Applying the merging technique, we see that it first merges the cross clusters until they are each a distinct cluster.
-Then it merges components in the diagonal groups until each is its own cluster.
+Then it merges components in the slanted groups until each is its own cluster.
 This results in an accurate clustering for $K = 4$, whose contours approximate the true Gaussian contours well.
-In particular, we see that the merging solution transcends the covariance restriction to infer accurate densities. 
+The merging solution ultimately transcends the covariance restriction to infer accurate group structure.
+Table \ref{Table2} lists inferred $K$ values and computed entropy values for each solution.
 
 \begin{figure}
 \begin{center}
@@ -493,28 +494,28 @@ In particular, we see that the merging solution transcends the covariance restri
 \end{figure}
 
 Figure \ref{Entropy2} shows the corresponding entropy plots, which exhibit discrepancies over the selection of a change point.
-In particular, the piecewise regression in the top left plot suggests $K = 8$, the plots of the difference and normalized difference in entropy both suggest $K = 4$, and the total entropy plot versus the cumulative count of merged observations suggests $K = 5$.
+The piecewise regression in the top left plot suggests $K = 8$, the plots of the differences and normalized differences in entropy both suggest $K = 4$, and the total entropy plot versus the cumulative count of merged observations suggests $K = 5$.
 This is likely due to the hierarchical nature of the clustering sequence.
-The top left plot of total entropy versus $K$ elucidates this, as it indicates two change points: one at $K = 8$ and one at $K = 4$.
+The top left elucidates this, as it indicates two change points: one at $K = 8$ and one at $K = 4$.
 These points correspond to when the merging procedure has formed the ``cross'' clusters and the diagonal clusters, respectively. 
 Hence, a three-segment piecewise regression would seem more relevant here.
 
-On the other hand, opting instead for $\estim K = \estim K_{\text{ICL}} = 7$ seems erroneous with respect to both the true number of components and the apparent number of contiguous, well-separated groups.
+On the other hand, opting instead for $\estim K = \estim K_{\text{ICL}} = 7$ does not reflect true number of components or the apparent number of contiguous, well-separated groups.
 This exemplifies the difficulty of automatically choosing $K$.
 In this case, a visual inspection of the data and resultant clusterings seems to be the best way to estimate $\estim K$.
 
 \subsection{Mixture of a bivariate uniform and a bivariate, spherical Gaussian}\label{three}
 Next, we investigate the behavior of the merging method when non-Gaussian groups are present in the data.
-In particular, we simulate a two-component mixture where one component is uniform on $[-1, 1]^2$ and one component is a spherical, bivariate Gaussian with mean $\mu = (3, 0)$.
-In this experiment, we fit Gaussian mixture models with spherical covariance matrices to the data, and apply each of the BIC, ICL, and merging clustering techniques.
+In particular, we sample 200 points a two-component mixture where one component is uniform on $[-1, 1]^2$ and one component is a spherical, bivariate Gaussian with mean $\mu = (3, 0)$.
+We fit Gaussian mixture models with spherical covariance matrices to the data, and apply each of the BIC, ICL, and merging clustering techniques.
 
-Figure \ref{Example3} displays the data in (a) along with the BIC, ICL, and the merging clustering solutions (excluding $K = 1$).
+Figure \ref{Example3} displays the data in (a) along with the BIC (b), ICL (c), and the merging clustering solutions (d -- f).
 For illustrative purposes, we show the results when using \texttt{MixMod} for the initialization parameters, as \texttt{mclust} yields the same clusterings for the BIC and ICL (corresponding to $K = 2$).
 The BIC estimates $K = 5$, a clear overestimate since we know there are two true generating components, whereas the ICL does recover the correct group structure with $K = 2$.
 The merging procedure iteratively merges the four components corresponding to the Gaussian group until it is represented as one cluster.
-It is competitive with the ICL clustering, exhibiting a similar misclassification rate. 
 Figure \ref{Entropy3} displays entropy plots for this example.
-Interestingly, each plot suggests a change point of $K = 3$, although the presence of only five $K$-values might constitute an unreliable sample size.
+Surprisingly, each plot suggests a change point of $K = 3$, although the presence of only five $K$-values might constitute an unreliable sample size.
+Table \ref{Table3} lists inferred $K$ values and computed entropy values for each solution.
 
   
 \begin{figure}
@@ -565,21 +566,20 @@ Interestingly, each plot suggests a change point of $K = 3$, although the presen
 
 
 \subsection{Comparison with Li's method using a Gaussian mixture}\label{four}
-The next two examples compare the merging procedure of \cite{Baudry10} to a similar method laid out by \cite{Li05}, who also model clusters as Gaussian mixtures.
-However, \cite{Li05} assumes the true number of clusters $K$ is assumed to be known in advance.
-The algorithm is initialized using a two-layer $k$-means technique: one run of $k$-means for the $K$ clusters, and then a further $k$-means run within each cluster. 
+The next two examples compare the merging procedure of \cite{Baudry10} to a similar method laid out by \cite{Li05}, who also models clusters as Gaussian mixtures.
+However, \cite{Li05} assumes the true number of clusters $K$ is known in advance.
+The initialization consists of using a two-layer $k$-means technique: one run of $k$-means for the $K$ clusters, and then a further $k$-means run within each cluster. 
 The algorithm then merges clusters to minimize an inertia, or sum-of-squares, criterion; this contrasts with the entropy criterion of \cite{Baudry10}.
-The total number of components is ultimately selected using the BIC.
+The total number of components is ultimately selected by the BIC.
 
-We simulate from a four-component bivariate Gaussian mixture and apply our merging procedure.
+We sample 800 points from a four-component bivariate Gaussian mixture, apply the merging procedure.
 The data are assumed to comprise three groups, with the two large rightmost components constituting a single group.
-Thus, the ground truth for Li's method corresponds to $K = 3$.
-Figure \ref{Example4_1} shows the unlabeled data as well as the BIC solution with $K = 4$ and the $K = 3$ merged solution.
+Thus, we set the ground truth for Li's method to $K = 3$.
+Figure \ref{Example4_1} shows the unlabeled data in (a), the BIC solution with $K = 4$ in (b), and the $K = 3$ merged solution in (c).
 We see that our merging routine identifies the desired group structure when merging to $K = 3$.
-Conversely, Li's $K = 3$ solution merges the bottom two clusters (colored as cyan and blue), violating the desired structure.
+Conversely, the method of \cite{Li05} merges the bottom two clusters (colored as cyan and blue) as reported by \cite{Baudry10}.
 
-
-\begin{figure}\label{Example4_1}
+\begin{figure}
 \begin{center}
 \subfloat[Unclustered data]{
 	\includegraphics[width=0.33\linewidth]{../Olson/Figures/d41/unclustered.pdf}
@@ -592,6 +592,7 @@ Conversely, Li's $K = 3$ solution merges the bottom two clusters (colored as cya
 }
 \end{center}
 \caption{Unclustered data along with BIC and $K = 3$ merged solution for example \ref{four}.}
+\label{Example4_1}
 \end{figure}
 
 \subsection{Comparison with Li's method using a trivariate uniform mixture with overlapping components}\label{five}
@@ -627,15 +628,15 @@ Here, we assume that the cross and pillar comprise two distinct groups, so that 
 \label{Example4_2}
 \end{figure}
 
-The BIC chooses $K = 3$ components, each corresponding to a horizontal or diagonal pillar, with the labeled solution shown in figure \ref{Example4_2} (c -- d).
+The BIC chooses $K = 3$ components, each corresponding to a horizontal or diagonal pillar, whose solution is shown in figure \ref{Example4_2} (c -- d).
 Applying the merging solution gives the $K = 2$ clustering that matches our notion of the true groups, with the labeled solution shown in figure \ref{Example4_2} (e -- f).
 In contrast, Li's merging solution for $K = 2$ yields a clustering where the two legs of the cross closest to the vertical pillar are merged with the vertical pillar to form a group, leaving the other two legs of the cross as the second group.
 This solution does not correspond to the assumed ground truth, with the clusters not being particularly well-separated.
 
-\cite{Baudry10} contend that their method outperforms that of \cite{Li05}.
-Clearly, sidestepping the need to know $K$ beforehand provides a broader range of candidate applications.
-Their method also excels at separating clusters, whereas the method of \cite{Li05}, based on absolute distances between components, seems prone to yielding irrelevant merges. 
-In addition, \cite{Li05} requires multiple runs of the EM algorithm, whereas \cite{Baudry10} gain efficiency by requiring only one.
+From examples \ref{three} and \ref{four}, \cite{Baudry10} contend that their method outperforms that of \cite{Li05}.
+Sidestepping the need to know $K$ beforehand provides a broader range of candidate applications.
+Their method also excels at separating clusters, whereas the method of \cite{Li05}, based on absolute distances between components, seems prone to yielding irrelevant merges based on proximity rather than similarity. 
+In addition, \cite{Li05} requires multiple runs of the EM algorithm, whereas \cite{Baudry10} gain efficiency by requiring just one run.
 
 \subsection{Flow cytometry study}\label{GvHD}
 Our final example examines datasets from \cite{Brinkman07}.
