@@ -269,7 +269,7 @@
 \alert{Goal:} cluster data into groups
 \bigskip
 \item[]
-\alert{Def'n. of groups}: "Contiguous, densely-populated regions of feature space, separated by contiguous, relatively empty regions"
+\alert{Def'n. of groups}: "contiguous, densely-populated regions of feature space, separated by contiguous, relatively empty regions"
 \bigskip
 \item[]
 \alert{Difficulty:} \# of groups often unknown
@@ -296,8 +296,6 @@ Clustered \& labeled
 
 \begin{frame}\frametitle{Model-based clustering}
 \begin{itemize}
-\item[]
-\alert{Our focus:} model-based clustering
 \bigskip
 \item[]
 \alert{Assumption:} each data point $\bx_i \sim$ \emph{Gaussian mixture density} with $K$ components:
@@ -322,22 +320,29 @@ $\pmb\Sigma = (\Sigma_1, \dotsc, \Sigma_K)$: component covariances
 \item 
 $\theta_K = (\bp, \bmu, \pmb\Sigma)$: total parameter vector
 \end{itemize} 
+\bigskip
+\item[]
+Assign $\bx_1, \dotsc, \bx_n$ to most likely components
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Model-based clustering}
 \begin{itemize}
-\item[] \alert{Caveat:} Each group corresponds to a mixture component
+\item[] \alert{Caveat:} each group corresponds to a mixture component
 \bigskip
 \item[]
-\alert{Pro:} Can estimate \# of components \& parameters easily
-\bigskip
+\alert{Pros:}
 \begin{itemize}
-\item E.g. Expectation-Maximization (EM) algorithm
+\bigskip
+\item
+Can infer $K$, the \# of components
+\bigskip
+\item
+Can estimate parameters with expectation-maximization (EM) algorithm
 \end{itemize}
 \bigskip
 \item[]
-\alert{Cons:} What if the groups are non-Gaussian?
+\alert{Con:} what if the groups are non-Gaussian?
 \end{itemize}
 \end{frame}
 
@@ -347,7 +352,7 @@ $\theta_K = (\bp, \bmu, \pmb\Sigma)$: total parameter vector
 Start with set of candidates $\set{K_\text{min}, \dotsc, K_\text{max}}$ 
 \bigskip
 \item[]
-For each $K$ in the set, 
+For each $K$, 
 compute the MLE 
 $\estim\theta_K = (\estim{\mathbf p}, \estim{\pmb\mu}, \estim{\pmb\Sigma})$
 \bigskip
@@ -361,17 +366,17 @@ $\estim\theta_K = (\estim{\mathbf p}, \estim{\pmb\mu}, \estim{\pmb\Sigma})$
 \begin{itemize}
 \item[]
 Dasgupta \& Raftery (1998): $\estim K = \argmax_K \text{BIC}(K)$, where
+\bigskip
 \ba
 \text{BIC}(K)
-	= \underbrace{\log \; f(\bx; K, \estim\theta_K)}_\text{\alert{observed} log-likelihood} 
+	= \underbrace{\log \; f\left(\bx; K, \estim\theta_K\right)}_\text{\alert{observed} log-likelihood} 
 	- \underbrace{\frac{\nu_K \log(n)}{2}}_\text{penalty}
 \ea
+\bigskip
 \begin{itemize}
 \item
-$f(\bx; K, \estim\theta_K) = \prod_{i=1}^n f(\bx_i; K, \estim\theta_K)$
-\bigskip
-\item
-$\estim\theta_K = $ MLE for parameters
+$f\left(\bx; K, \estim\theta_K\right) 
+= \prod_{i=1}^n f \left(\bx_i; K, \estim\theta_K \right)$
 \bigskip
 \item
 $\nu_K = \# $ of free parameters in $K$-component model
@@ -405,7 +410,7 @@ $\mathcal N_2\left(\begin{pmatrix} 1 \\ 2 \end{pmatrix},
 \includegraphics[width=0.5\linewidth]{../Olson/Figures/unif/unclustered.pdf}
 \end{center}
 \item[]
-Assume spherical covariances, get $\estim\theta_K$  for each $K \in \set{1, \dotsc, 10}$, \& compute $\estim K_\text{BIC}$
+Assume spherical covariances, get $\estim\theta_K$  for each $K \in \set{1, \dotsc, 10}$, \& compute BIC solution
 \end{itemize}
 \end{frame}
 
@@ -425,6 +430,7 @@ BIC yields 5 components/clusters, but there are only 2 groups
 \begin{itemize}
 \item[]
 Biernacki et al. (2000): consider the \text{\color<1>[rgb]{0,0.7,0}{completed}} likelihood
+\bigskip
 \ba
 f(\bx_i, \text{\color<1>[rgb]{0,0.7,0}{$\bz_i$}} ; K, \estim\theta_K)
 	& = \sum_{k=1}^K p_k \phi(\bx_i; \mu_k, \Sigma_k) 
@@ -433,30 +439,31 @@ f(\bx_i, \text{\color<1>[rgb]{0,0.7,0}{$\bz_i$}} ; K, \estim\theta_K)
 		1 \le i \le n
 \ea
 \begin{itemize}
-
+\item
+Incorporates \emph{true component memberships}
+\bigskip
 \item
 $z_{ik} = \ind{ \bx_i \text{ arises from component } k}$
 \bigskip
 \item 
 $\bz_i = (z_{i1}, \dotsc, z_{iK})$: standard basis vector in $\reals^K$
-\bigskip
-\item
-$\bz = (\bz_1, \dotsc, \bz_n)$: $K \times n$ binary matrix
 \end{itemize}
 \bigskip
 \item[]
-The $\bz_i$ are unobserved, but we can estimate them!
+The $\bz_i$ are \text{\color<1>[rgb]{0,0.7,0}{unobserved}} latent (hidden) variables, but we can estimate them!
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Integrated Completed Likelihood (ICL) criterion}
 \begin{itemize}
 \item[]
-So, instead choose $\estim K = \argmax_K \text{ICL}(K)$, where
+So, instead of using BIC, we can choose $\estim K = \argmax_K \text{ICL}(K)$, where
+\bigskip
 \ba
 \text{ICL}(K)
 	= \underbrace{\log \; f(\bx, \text{\color<1>[rgb]{0,0.7,0}{$\estim\bz$}}; K, \estim\theta_K)}_\text{\alert{"completed"} log-likelihood} - \frac{\nu_K \log(n)}{2}
 \ea
+\bigskip
 \begin{itemize}
 \item
 $f(\bx, \estim\bz) = \prod_{i=1}^n f(\bx_i, \estim\bz_i; K, \estim\theta_K)$
@@ -471,15 +478,16 @@ $\estim\bz_i$ = the most likely cluster assignment of $\bx_i$ given $\estim\thet
 \begin{itemize}
 \bigskip
 \item[]
-Can show ICL penalizes entropy of clustering:
-
+We can show that ICL penalizes entropy of clustering:
+\bigskip
 \ba
 \text{Entropy}(K) = - \sum_{i=1}^n \sum_{k=1}^K
-	t_{ik}(\estim\theta_K) \log t_{ik}(\estim\theta_K)
+	t_{ik}\left(\estim\theta_K \right) \log t_{ik}\left(\estim\theta_K \right)
 \ea
+\bigskip
 where
 \ba
-t_{ik}(\estim\theta_K) & = \Pr{\bx_i \text{ arises from component $k$} \;\bigg|\; \estim\theta_K } \\
+t_{ik}\left(\estim\theta_K \right) & = \Pr{\bx_i \text{ arises from component $k$} \;\bigg|\; \estim\theta_K } \\
 	& = \frac{ p_k \phi_k(\bx_i | \mu_k, \Sigma_k)  }
  	{ \sum_{j=1}^K p_j \phi_j(\bx_i | \mu_j, \Sigma_j) }
 \ea
@@ -489,19 +497,31 @@ t_{ik}(\estim\theta_K) & = \Pr{\bx_i \text{ arises from component $k$} \;\bigg|\
 \begin{frame}\frametitle{ICL: Remarks}
 \begin{itemize}
 \item[]
-\alert{Pro:} Better estimates \# of \emph{groups}, even under model misspecification
+\alert{Pro:} 
+\medskip
+\begin{itemize}
+\item
+Better estimates \# of \emph{groups}, even under model misspecification
+\end{itemize}
 \bigskip
 \item[]
-\alert{Con:} Can underestimate \# of \emph{components}
+\alert{Cons:}
+\medskip
 \begin{itemize}
+\item
+Can underestimate \# of \emph{components}
 \bigskip
 \item
-Often includes poorly separated groups into one cluster 
+Can put poorly separated groups into same cluster 
 \end{itemize}
-\bigskip
-\item[]
-\alert{Question:} Does each component really represent a separate cluster? 
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{The Big Question}
+\large
+\begin{center}
+ Does each \alert{component} really represent a separate \alert{group}?
+\end{center}
 \end{frame}
 
 \section{New contributions}
@@ -513,17 +533,17 @@ Let's exploit respective strengths of BIC \& ICL!
 \bigskip
 \begin{enumerate}
 \item
-Start with BIC estimate of $K$ from initial set $\set{K_\text{min}, \dotsc, K_\text{max}}$
+Start by computing BIC solution from $\set{K_\text{min}, \dotsc, K_\text{max}}$
 \bigskip
 \item
-At each stage, merge the 2 clusters which results in largest decrease in entropy
+At each stage, merge the 2 clusters which leads to largest decrease in entropy
 \bigskip
 \item
-Continue merging clusters, stopping at $K_\text{min}$
+Continue merging clusters, stopping with $K_\text{min}$ solution
 \end{enumerate} 
 \bigskip
 \item[]
-Yields \emph{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
+This yields a \emph{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{BIC}$
 \end{itemize}
 \end{frame}
 
@@ -531,17 +551,12 @@ Yields \emph{sequence of clusterings} for $K_\text{min}, \dotsc, \estim K_\text{
 \begin{itemize}
 \item[]
 Merging produces components that are \alert{Gaussian mixtures themselves}
-\begin{itemize}
-\bigskip
-\item
-Yields new conditional probabilities $t_{ik}$, influencing the entropy
-\end{itemize}
 \bigskip
 \item[]
 \alert{Key idea:} allows (\# components) $\ne$ (\# clusters)
 \bigskip
 \item[]
-Complexity: $\mathcal O \left( \left\{\text{rate for } \estim K_\text{BIC} \right\}+ n K_\text{max}^3 \right)$
+Computational complexity: $\mathcal O \left( \left\{\text{rate for } \estim K_\text{BIC} \right\}+ n K_\text{max}^3 \right)$
 \end{itemize}
 \end{frame}
 
@@ -565,7 +580,7 @@ Regressing entropy-based quantities on $K$ to identify a change point
 \end{enumerate}
 \bigskip
 \item[]
-Issues: Small-sample size, multiple change points (elbows)
+\alert{Issues:} Small-sample size, multiple change points (elbows)
 \end{itemize}
 \end{frame}
 
@@ -620,7 +635,7 @@ BIC solution ($K = 5$)
 \end{frame}
 
 
-\begin{frame}\frametitle{Illustation: Entropy regression}
+\begin{frame}\frametitle{Entropy ``regression''}
 \begin{center}
 \includegraphics[width=\linewidth]{../Olson/Figures/unif/total_entropy.pdf}
 \end{center}
@@ -665,17 +680,22 @@ Key: look at \textbf{cell populations} -- groups of cells with similar genetic \
 \alert{Their goal:} look for patterns in white blood cells
 \bigskip
 \item[]
-They measured concentrations of \emph{4 molecules} within each cell, called CD3, CD4, CD8, \& CD8$\beta$
+They measured concentrations of many different molecules within each cell
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Findings}
 \begin{itemize}
 \item
-\emph{Susceptibility to disease} strongly correlates with cell populations that contain \emph{high levels of 3 molecules}: CD3, CD4, \& CD8$\beta$
+\emph{Susceptibility to disease} correlates with the presence of cell populations containing high levels of \emph{3 particular molecules}
+\bigskip
+\begin{itemize}
+\item
+These molecules are called CD3, CD4, \& CD8$\beta$
+\end{itemize}
 \bigskip
 \item
-Identified specific cell populations using physical/chemical properties of cells along with another related molecule (CD8)
+Identified specific cell populations using physical/chemical properties of cells along with another related molecule, CD8
 \end{itemize}
 \end{frame}
 
@@ -683,7 +703,7 @@ Identified specific cell populations using physical/chemical properties of cells
 \begin{itemize}
 \item[]
 \alert{Dataset:}
- $\approx 7,000$ blood cell measurements from 1 patient \emph{without} graft-vs-host disease
+ blood cell measurements from 1 patient \emph{without} graft-vs-host disease
 \bigskip
 \item[]
 \alert{Goal:} cluster cell measurements into cell populations using BIC \& merging method
@@ -698,7 +718,7 @@ Compare to manual results of previous study:
 \bigskip
 \begin{itemize}
 \item
-Show that control patient \emph{does not} have cell populations with high levels of CD3, CD4, \& CD8$\beta$
+Show that patient \emph{does not} have cell populations with high levels of CD3, CD4, \& CD8$\beta$
 \end{itemize}
 \end{itemize}
 \end{frame}
@@ -712,10 +732,10 @@ Show that control patient \emph{does not} have cell populations with high levels
 \begin{frame}\frametitle{Strategy}
 \begin{itemize}
 \item
-\alert{Cluster cells into cell populations} based on their 4 molecule levels
+\alert{Cluster cells into cell populations} based on the 4 molecule levels
 \bigskip
 \item
-Use \alert{threshold} to classify each group has having ``high'' or ``low'' levels of each molecule
+Use \alert{threshold} to classify each population has having ``high'' or ``low'' levels of each molecule
 \bigskip
 \item
 Plot concentrations of CD4 vs CD8$\beta$, \& \alert{only display groups with high levels of CD3} on plot
@@ -731,7 +751,37 @@ Allows us to identify cell populations with high levels of CD3, CD4, \& CD8$\bet
 \begin{itemize}
 \medskip
 \item[]
-\alert{NOTE}: Only clusters with high CD3 levels are shown
+\alert{NOTE}: Only clusters with high CD3 levels ($\estim\mu_\text{CD3} \ge 280$) are shown
+\end{itemize}
+\begin{center}
+\begin{minipage}{0.4\linewidth}
+\includegraphics[width=\linewidth]{../Olson/Figures/d52_raw_2/merged_13_CD3_CD8beta.pdf}
+\begin{center}
+BIC solution
+\\
+$K = 13$
+\\
+Entropy $ = 3733$
+\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}{0.5\linewidth}
+\begin{itemize}
+\item[]
+Upper right square shows a cell population with high levels of CD3, CD4, \& CD8$\beta$
+\bigskip
+\item[]
+This is \emph{inconsistent} with previous study
+\end{itemize}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Results for control individual (without disease)}
+\begin{itemize}
+\medskip
+\item[]
+\alert{NOTE}: Only clusters with high CD3 levels ($\estim\mu_\text{CD3} \ge 280$) are shown
 \end{itemize}
 \begin{center}
 \begin{minipage}{0.4\linewidth}
@@ -762,10 +812,10 @@ Entropy $= 58$
 \begin{frame}\frametitle{Summary}
 \begin{itemize}
 \item[]
-BIC estimates \# of components well 
+BIC estimates \# of \emph{components} well 
 \bigskip
 \item[]
-ICL uses entropy to identify \# of groups well
+ICL uses entropy to identify \# of \emph{groups} well
 \bigskip
 \item[]
 Baudry et al. combine their strengths:
@@ -824,7 +874,7 @@ Questions?
 \item[]
 Conditional probabilities:
 \ba
-t_{ik}(\estim\theta_K) & = \Pr{\bx_i \text{ arises from component $k$} \mid \estim\theta_K } \\
+t_{ik}\left(\estim\theta_K\right) & = \Pr{\bx_i \text{ arises from component $k$} \mid \estim\theta_K } \\
 	& = \frac{ p_k \phi_k(\bx_i | \mu_k, \Sigma_k)  }
  	{ \sum_{j=1}^K p_j \phi_j(\bx_i | \mu_j, \Sigma_j) }
 \ea
@@ -833,7 +883,7 @@ with $\phi_k = $ $k$th Gaussian mixture density
 \item[]
 MAP estimates:
 \ba
-\estim z_{ik} := \ind{ \argmax_{1 \le j \le K} t_{ij}(\estim\theta_K) = k }
+\estim z_{ik} := \ind{ \argmax_{1 \le j \le K} t_{ij}\left(\estim\theta_K\right) = k }
 \ea
 \end{itemize}
 \end{frame}
@@ -868,6 +918,12 @@ Merged solution for $K = 2$
 ICL solution ($K = 2$)
 \end{center}
 \end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Extra example}
+\begin{center}
+\includegraphics[width=\linewidth]{ExtraExample.png}
 \end{center}
 \end{frame}
 
