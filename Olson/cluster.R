@@ -36,7 +36,6 @@ getModel <- function(dat,
                             modelNames=model_names
                             )
 
-        # Mclust tries REALLY hard to 
         K <- mc_raw %>%
             summary %>%
             attributes %$%
@@ -92,7 +91,7 @@ getDensities <- function(params) {
         fs[[k]] <- list(Props=list(params$Prop[k]),
                         Mean=list(params$Mean[, k]),
                         Var=list(params$Variance[, , k]),
-                        Label=k # Avoid k = 1, which plots black points
+                        Label=k 
                         )
     }
     return(fs)
@@ -368,7 +367,6 @@ getClusterSequence <- function(dat,
     )
 }
 
-# Basically specialized for the "3D uniform cross" example
 plotDensities3D <- function(dat, prefix, zs) {
     pdf(paste0(prefix, "_scatter.pdf"))
     scatterplot3d(dat, pch=19, asp=1, color=zs)
@@ -546,7 +544,6 @@ runAnalysis <- function(working_dat,
     K_ent_df <- rbind(K_ent_df,
                       k_ent_dfs)
 
-    print(dim(K_ent_df))
     printTable(K_ent_df,
                paste0(output_dir, "K_ent.tex")
                )
